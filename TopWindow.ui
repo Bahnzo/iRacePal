@@ -453,6 +453,24 @@
      <string>Laps Until Empty</string>
     </property>
    </widget>
+   <widget class="QLabel" name="version_label">
+    <property name="geometry">
+     <rect>
+      <x>570</x>
+      <y>0</y>
+      <width>31</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>v1.0</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>
