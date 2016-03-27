@@ -21,7 +21,7 @@ class Ui_TopWindow(object):
         font.setWeight(75)
         TopWindow.setFont(font)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("Lotus_logo_vector.svg.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         TopWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(TopWindow)
         self.centralwidget.setObjectName("centralwidget")

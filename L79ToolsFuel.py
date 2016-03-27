@@ -81,11 +81,7 @@ class Worker(QThread):
                                 self.fuel_used_last_lap.emit(fpl)
                             current_lap = self.ir['Lap']
                             self.laps.emit(str(current_lap))
-                            data = [float(line) for line in fuel_used]
-                            try:
-                                avg = sum(data) / float(len(data))
-                            except ZeroDivisionError:
-                                avg = 0
+
                             if not self.metric:
                                 self.avg_fuel_used.emit(avg * 0.21997)  # conv to imp gals
                             else:
@@ -94,6 +90,11 @@ class Worker(QThread):
                             if lap_store:  # don't store data from first lap out of pits
                                 self.write_lap(fpl, weight_of_fuel)  # write lap data to file
                                 fuel_used.append(fuel_store - self.ir['FuelLevel'])  # fuel use list
+                                data = [float(line) for line in fuel_used]
+                                try:
+                                    avg = sum(data) / float(len(data))
+                                except ZeroDivisionError:
+                                    avg = 0
                             else:
                                 lap_store = True
                             fuel_store = self.ir['FuelLevel']
@@ -195,6 +196,7 @@ class StartWindow(QMainWindow, TopWindow.Ui_TopWindow):
         super(StartWindow, self).__init__(parent)
         self.setupUi(self)
 
+        self.version_label.setText('v1.1')
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
         self.thread.laps[str].connect(self.set_laps)
