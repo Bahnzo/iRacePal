@@ -1,0 +1,8 @@
+# Created by .ignore support plugin (hsz.mobi)
+*.txt
+*.bin
+/QthreadExample.py
+/setup.py
+/simpleCalc.py
+/simpleTest.py
+/telemetry_11_23_15.pdf

@@ -168,6 +168,12 @@ class Ui_TopWindow(object):
         font.setPointSize(8)
         self.version_label.setFont(font)
         self.version_label.setObjectName("version_label")
+        self.time_label = QtWidgets.QLabel(self.centralwidget)
+        self.time_label.setGeometry(QtCore.QRect(520, 30, 81, 20))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.time_label.setFont(font)
+        self.time_label.setObjectName("time_label")
         TopWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(TopWindow)
@@ -191,4 +197,5 @@ class Ui_TopWindow(object):
         self.label_11.setText(_translate("TopWindow", "Fuel Left"))
         self.label_12.setText(_translate("TopWindow", "Laps Until Empty"))
         self.version_label.setText(_translate("TopWindow", "v1.0"))
+        self.time_label.setText(_translate("TopWindow", "TextLabel"))
 

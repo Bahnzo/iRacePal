@@ -9,6 +9,9 @@
 # Speed = meters/second
 # LFwearM - wear in percent
 
+# TODO: checkbox for deleting car file
+
+
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtCore import *
 import sys
@@ -33,6 +36,7 @@ class Worker(QThread):
     wind_vel = pyqtSignal(str)
     fuel_in_tank = pyqtSignal(str)
     laps_fuel = pyqtSignal(float)
+    curr_time = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
@@ -49,14 +53,17 @@ class Worker(QThread):
                 self.status.emit('iRacing found. Waiting for car on track')
                 self.get_weather()
                 self.look_for_car()
+                self.set_time()
             else:
                 self.status.emit('Waiting for iRacing: {}'.format(count))
+                self.set_time()
                 count += 1
                 sleep(1)
 
     def look_for_car(self):
         global fuel_used
         while True:
+            self.set_time()
             if self.ir['IsOnTrack']:
                 self.determine_metric()
                 lap_store = False  # set this so we don't use the first lap from pits for fuel calc's
@@ -73,24 +80,35 @@ class Worker(QThread):
                         break
                     else:
                         self.status.emit('Driver in car.')
+                        self.set_time()
                         if self.ir['Lap'] > current_lap:
                             fpl = fuel_store - self.ir['FuelLevel']
                             if not self.metric:
-                                self.fuel_used_last_lap.emit(fpl * 0.21997)  # conv to imp gals
+                                if self.is_car_imp_gal():  # gets car type for Lotus79 or 49
+                                    self.fuel_used_last_lap.emit(fpl * 0.21997)  # conv to imp gals
+                                else:
+                                    self.fuel_used_last_lap.emit(fpl * 0.264)  # gallons
                             else:
-                                self.fuel_used_last_lap.emit(fpl)
+                                self.fuel_used_last_lap.emit(fpl)  # liters
                             current_lap = self.ir['Lap']
                             self.laps.emit(str(current_lap))
-
                             if not self.metric:
-                                self.avg_fuel_used.emit(avg * 0.21997)  # conv to imp gals
+                                if self.is_car_imp_gal(): # gets car type for Lotus79 or 49
+                                    self.avg_fuel_used.emit(avg * 0.21997)  # conv to imp gals
+                                else:
+                                    self.avg_fuel_used.emit(avg * 0.264)  # gallons
                             else:
                                 self.avg_fuel_used.emit(avg)
                             weight_of_fuel = self.ir['FuelLevel'] * self.ir['DriverInfo']['DriverCarFuelKgPerLtr']
                             if lap_store:  # don't store data from first lap out of pits
-                                self.write_lap(fpl, weight_of_fuel)  # write lap data to file
-                                fuel_used.append(fuel_store - self.ir['FuelLevel'])  # fuel use list
-                                data = [float(line) for line in fuel_used]
+                                if self.average_fuel_limit(avg, fpl) and len(fuel_used) > 5:  #  check that lap usage is within set limits
+                                    self.write_lap(fpl, weight_of_fuel)  # write lap data to file
+                                    fuel_used.append(fuel_store - self.ir['FuelLevel'])  # fuel use list
+                                    data = [float(line) for line in fuel_used]
+                                if len(fuel_used) <= 5: #  write anyways, gotta have some data!
+                                    self.write_lap(fpl, weight_of_fuel)  # write lap data to file
+                                    fuel_used.append(fuel_store - self.ir['FuelLevel'])  # fuel use list
+                                    data = [float(line) for line in fuel_used]
                                 try:
                                     avg = sum(data) / float(len(data))
                                 except ZeroDivisionError:
@@ -107,7 +125,29 @@ class Worker(QThread):
                 if self.ir.startup() == 0:
                     break
                 self.status.emit('Waiting for Driver in car.')
+                self.set_time()
                 sleep(0.0016)
+
+    def average_fuel_limit(self, avg_fuel, curr_lap_fuel):
+        if curr_lap_fuel < (avg_fuel * .9):  # if current laps fuel usage is not within 90% of the average
+            return False
+        if curr_lap_fuel > (avg_fuel * 1.1):
+            return False
+        else:
+            return True
+
+    def is_car_imp_gal(self):
+        if self.car_type == 'lotus79':
+            return True
+        elif self.car_type == 'lotus49':
+            return True
+        else:
+            return False
+
+    def set_time(self):
+        dt = QTime.currentTime()
+        time = dt.toString('h:mm:ssap')
+        self.curr_time.emit(time)
 
     def determine_metric(self):
         self.metric = self.ir['DisplayUnits']
@@ -115,7 +155,10 @@ class Worker(QThread):
     def display_laps_remaining(self, avg):
         try:
             if not self.metric:
-                self.laps_fuel.emit((self.ir['FuelLevel'] * 0.21997) / (avg * 0.21997))  #conv metric
+                if self.is_car_imp_gal():
+                    self.laps_fuel.emit((self.ir['FuelLevel'] * 0.21997) / (avg * 0.21997))  # conv imp gallons
+                else:
+                    self.laps_fuel.emit((self.ir['FuelLevel'] * 0.264) / (avg * 0.264))  # convert gallons
             else:
                 self.laps_fuel.emit((self.ir['FuelLevel']) / avg)
         except ZeroDivisionError:
@@ -130,7 +173,10 @@ class Worker(QThread):
         except ZeroDivisionError:
             avg = 0
         if not self.metric:
-            self.avg_fuel_used.emit(avg * 0.21997)  # conv metric
+            if self.is_car_imp_gal():
+                self.avg_fuel_used.emit(avg * 0.21997)  # conv imp gallons
+            else:
+                self.avg_fuel_used.emit(avg * 0.264)  # conv gallons
         else:
             self.avg_fuel_used.emit(avg)
         return avg
@@ -144,15 +190,20 @@ class Worker(QThread):
             data = f.readlines()
         data = [line.strip('\n') for line in data]
         data = [m.group(1).rstrip(',') for l in data for m in [lap_regex.search(l)] if m]
+        f.close()
         return data
 
     def write_lap(self, fuel, weight):
         with open('./data/{}/{}-{}.txt'.format(self.car_type, self.trackname, self.track_config), 'a') as f:
             f.write('{}, {}\n'.format(fuel, weight))
+        f.close()
 
     def display_fuel_in_car(self):
         if not self.metric:
-            fuel_in_tank = self.ir['FuelLevel'] * 0.21997  # conv to gals
+            if self.is_car_imp_gal():
+                fuel_in_tank = self.ir['FuelLevel'] * 0.21997  # conv to imp gals
+            else:
+                fuel_in_tank = self.ir['FuelLevel'] * 0.264  # conv gals
         else:
             fuel_in_tank = self.ir['FuelLevel']
         self.fuel_in_tank.emit(str(round(fuel_in_tank, 1)))
@@ -196,7 +247,7 @@ class StartWindow(QMainWindow, TopWindow.Ui_TopWindow):
         super(StartWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.version_label.setText('v1.1')
+        self.version_label.setText('v1.2')
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
         self.thread.laps[str].connect(self.set_laps)
@@ -209,9 +260,13 @@ class StartWindow(QMainWindow, TopWindow.Ui_TopWindow):
         self.thread.wind_vel[str].connect(self.set_wind_vel)
         self.thread.fuel_in_tank[str].connect(self.set_fuel_in_tank)
         self.thread.laps_fuel[float].connect(self.set_fuel_laps_remaining)
+        self.thread.curr_time[str].connect(self.set_time)
         self.thread.start()
         self.quit_button.clicked.connect(self.quit_button_pushed)
         self.race_laps.valueChanged.connect(self.set_fuel_needed2)
+
+    def set_time(self, i):
+        self.time_label.setText(i)
 
     def set_fuel_laps_remaining(self, i):
         self.laps_left_lcd.display(i)
@@ -224,8 +279,6 @@ class StartWindow(QMainWindow, TopWindow.Ui_TopWindow):
 
     def set_fuel_needed(self):
         self.fuel_needed_lcd.display(self.race_laps.value() * self.avg_fuel_per_lap_lcd.value())
-        #race_fuel = self.race_laps.value() * i
-        #self.fuel_needed_lcd.display(race_fuel)
 
     def set_wind_vel(self, i):
         self.wind_vel_label.setText(i)
