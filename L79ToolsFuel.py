@@ -10,6 +10,8 @@
 # LFwearM - wear in percent
 
 # TODO: checkbox for deleting car file
+# TODO: session time remaining
+# TODO: stint laps completed - alternate with total laps, maybe change colors?
 
 
 from PyQt5.QtWidgets import QMainWindow, QApplication
@@ -37,6 +39,8 @@ class Worker(QThread):
     fuel_in_tank = pyqtSignal(str)
     laps_fuel = pyqtSignal(float)
     curr_time = pyqtSignal(str)
+    session_left = pyqtSignal(str)
+    laps_label = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
@@ -54,6 +58,7 @@ class Worker(QThread):
                 self.get_weather()
                 self.look_for_car()
                 self.set_time()
+                self.set_session_time_left()
             else:
                 self.status.emit('Waiting for iRacing: {}'.format(count))
                 self.set_time()
@@ -67,21 +72,26 @@ class Worker(QThread):
             if self.ir['IsOnTrack']:
                 self.determine_metric()
                 lap_store = False  # set this so we don't use the first lap from pits for fuel calc's
-                current_lap = self.ir['Lap']
+                self.current_lap = self.ir['Lap']
+                self.current_stint = 0
+                self.lap_switch = 1
+                self.show_stint = False
                 fuel_store = self.ir['FuelLevel']
-                self.laps.emit(str(current_lap))
+                self.laps.emit(str(self.current_lap))
                 self.trackname = self.ir['WeekendInfo']['TrackDisplayShortName']
                 self.track_config = self.ir['WeekendInfo']['TrackConfigName']
                 driver = self.ir['DriverInfo']['DriverCarIdx']
                 self.car_type = self.ir['DriverInfo']['Drivers'][driver]['CarPath']
                 avg = self.avg_fuel_calculation()
+                self.set_session_time_left()
                 while True:
                     if self.ir['IsOnTrack'] == 0:
                         break
                     else:
                         self.status.emit('Driver in car.')
                         self.set_time()
-                        if self.ir['Lap'] > current_lap:
+                        self.set_session_time_left()
+                        if self.ir['Lap'] > self.current_lap:
                             fpl = fuel_store - self.ir['FuelLevel']
                             if not self.metric:
                                 if self.is_car_imp_gal():  # gets car type for Lotus79 or 49
@@ -90,8 +100,9 @@ class Worker(QThread):
                                     self.fuel_used_last_lap.emit(fpl * 0.264)  # gallons
                             else:
                                 self.fuel_used_last_lap.emit(fpl)  # liters
-                            current_lap = self.ir['Lap']
-                            self.laps.emit(str(current_lap))
+                            self.current_lap = self.ir['Lap']
+                            self.current_stint += 1
+                            self.laps.emit(str(self.current_lap))
                             if not self.metric:
                                 if self.is_car_imp_gal(): # gets car type for Lotus79 or 49
                                     self.avg_fuel_used.emit(avg * 0.21997)  # conv to imp gals
@@ -118,6 +129,8 @@ class Worker(QThread):
                             fuel_store = self.ir['FuelLevel']
                         if self.ir['WeatherType']:
                             self.get_weather()
+                        self.lap_switch += 1
+                        self.show_lap_switch()  # changes between total laps, and laps completed since leaving pits
                         self.display_fuel_in_car()
                         self.display_laps_remaining(avg)
                         sleep(0.0016)  # 16ms
@@ -126,12 +139,34 @@ class Worker(QThread):
                     break
                 self.status.emit('Waiting for Driver in car.')
                 self.set_time()
+                self.set_session_time_left()
                 sleep(0.0016)
+
+    def show_lap_switch(self):
+        if self.lap_switch > 1000:  # 125 * 16ms = 2 secs, switch every 2 secs
+            self.lap_switch = 1
+            if self.show_stint:
+                self.laps_label.emit('<font color = "red">Laps this Stint</font>')
+                self.laps.emit(str(self.current_stint))
+                self.show_stint = False
+            else:
+                self.laps_label.emit('<font color = "black">Total Laps</font>')
+                self.laps.emit(str(self.current_lap))
+                self.show_stint = True
+
+    def set_session_time_left(self):
+        time_left = self.ir['SessionTimeRemain']
+        if time_left == 604800:  # this is the time for an unlimited test session
+            self.session_left.emit('Unlimited')
+        else:
+            m, s = divmod(time_left, 60)
+            h, m = divmod(m, 60)
+            self.session_left.emit('%d:%02d:%02d' % (h, m, s))
 
     def average_fuel_limit(self, avg_fuel, curr_lap_fuel):
         if curr_lap_fuel < (avg_fuel * .9):  # if current laps fuel usage is not within 90% of the average
             return False
-        if curr_lap_fuel > (avg_fuel * 1.1):
+        if curr_lap_fuel > (avg_fuel * 1.1):  # if over 110%...it happens sometimes..
             return False
         else:
             return True
@@ -247,10 +282,12 @@ class StartWindow(QMainWindow, TopWindow.Ui_TopWindow):
         super(StartWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.version_label.setText('v1.2')
+        self.version_label.setText('v1.3')
+        self.lcd_palette = self.laps_completed_lcd.palette()
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
         self.thread.laps[str].connect(self.set_laps)
+        self.thread.laps_label[str].connect(self.set_laps_label)
         self.thread.fuel_used_last_lap[float].connect(self.set_fuel_used_last_lap)
         self.thread.avg_fuel_used[float].connect(self.set_avg_fuel_used)
         self.thread.avg_fuel_used[float].connect(self.set_fuel_needed)
@@ -261,9 +298,16 @@ class StartWindow(QMainWindow, TopWindow.Ui_TopWindow):
         self.thread.fuel_in_tank[str].connect(self.set_fuel_in_tank)
         self.thread.laps_fuel[float].connect(self.set_fuel_laps_remaining)
         self.thread.curr_time[str].connect(self.set_time)
+        self.thread.session_left[str].connect(self.set_session_time)
         self.thread.start()
         self.quit_button.clicked.connect(self.quit_button_pushed)
         self.race_laps.valueChanged.connect(self.set_fuel_needed2)
+
+    def set_laps_label(self, i):
+        self.laps_label.setText(i)
+
+    def set_session_time(self, i):
+        self.session_label.setText(i)
 
     def set_time(self, i):
         self.time_label.setText(i)
