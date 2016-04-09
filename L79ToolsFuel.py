@@ -56,9 +56,9 @@ class Worker(QThread):
                 self.determine_metric()
                 self.status.emit('iRacing found. Waiting for car on track')
                 self.get_weather()
-                self.look_for_car()
                 self.set_time()
                 self.set_session_time_left()
+                self.look_for_car()
             else:
                 self.status.emit('Waiting for iRacing: {}'.format(count))
                 self.set_time()
@@ -69,6 +69,8 @@ class Worker(QThread):
         global fuel_used
         while True:
             self.set_time()
+            self.current_stint = 0
+            driver = self.ir['DriverInfo']['DriverCarIdx']
             if self.ir['IsOnTrack']:
                 self.determine_metric()
                 lap_store = False  # set this so we don't use the first lap from pits for fuel calc's
@@ -85,6 +87,9 @@ class Worker(QThread):
                 avg = self.avg_fuel_calculation()
                 self.set_session_time_left()
                 while True:
+                    x = self.ir['CarIdxTrackSurface'][driver]
+                    if x == 1:  # if car is in pits, then reset also
+                        break
                     if self.ir['IsOnTrack'] == 0:
                         break
                     else:
@@ -104,7 +109,7 @@ class Worker(QThread):
                             self.current_stint += 1
                             self.laps.emit(str(self.current_lap))
                             if not self.metric:
-                                if self.is_car_imp_gal(): # gets car type for Lotus79 or 49
+                                if self.is_car_imp_gal():  # gets car type for Lotus79 or 49
                                     self.avg_fuel_used.emit(avg * 0.21997)  # conv to imp gals
                                 else:
                                     self.avg_fuel_used.emit(avg * 0.264)  # gallons
@@ -138,6 +143,7 @@ class Worker(QThread):
                 if self.ir.startup() == 0:
                     break
                 self.status.emit('Waiting for Driver in car.')
+                self.current_stint = 0
                 self.set_time()
                 self.set_session_time_left()
                 sleep(0.0016)
@@ -282,7 +288,7 @@ class StartWindow(QMainWindow, TopWindow.Ui_TopWindow):
         super(StartWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.version_label.setText('v1.3')
+        self.version_label.setText('v1.4')
         self.lcd_palette = self.laps_completed_lcd.palette()
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
