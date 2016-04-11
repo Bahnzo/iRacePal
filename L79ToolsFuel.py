@@ -26,7 +26,6 @@ import traceback
 
 fuel_used = []  # global for fuel used
 
-
 class Worker(QThread):
     status = pyqtSignal(str)
     laps = pyqtSignal(str)

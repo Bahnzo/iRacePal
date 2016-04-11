@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>701</width>
-    <height>480</height>
+    <width>393</width>
+    <height>232</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,10 +17,10 @@
    <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
-      <x>126</x>
-      <y>126</y>
+      <x>0</x>
+      <y>0</y>
       <width>391</width>
-      <height>199</height>
+      <height>208</height>
      </rect>
     </property>
     <property name="font">
@@ -310,8 +310,14 @@
        <height>25</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
      <property name="text">
-      <string>George Georgeishonish</string>
+      <string>-----------------------------</string>
      </property>
     </widget>
     <widget class="QLabel" name="name_label_p2">
@@ -323,8 +329,14 @@
        <height>25</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
      <property name="text">
-      <string>George Georgeishonish</string>
+      <string>-----------------------------</string>
      </property>
     </widget>
     <widget class="QLabel" name="name_label_p3">
@@ -336,8 +348,14 @@
        <height>25</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
      <property name="text">
-      <string>George Georgeishonish</string>
+      <string>-----------------------------</string>
      </property>
     </widget>
     <widget class="QLabel" name="name_label_p4">
@@ -349,8 +367,14 @@
        <height>25</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
      <property name="text">
-      <string>George Georgeishonish</string>
+      <string>-----------------------------</string>
      </property>
     </widget>
     <widget class="QLabel" name="name_label_p5">
@@ -362,8 +386,14 @@
        <height>25</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
      <property name="text">
-      <string>George Georgeishonish</string>
+      <string>-----------------------------</string>
      </property>
     </widget>
     <widget class="QLabel" name="name_label_p6">
@@ -375,8 +405,14 @@
        <height>25</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
      <property name="text">
-      <string>George Georgeishonish</string>
+      <string>-----------------------------</string>
      </property>
     </widget>
     <widget class="QLabel" name="name_label_p7">
@@ -388,8 +424,14 @@
        <height>25</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
      <property name="text">
-      <string>George Georgeishonish</string>
+      <string>-----------------------------</string>
      </property>
     </widget>
     <widget class="Line" name="line_10">
@@ -428,7 +470,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>2:21.03</string>
+      <string>0:00.00</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -465,7 +507,7 @@
       <rect>
        <x>306</x>
        <y>24</y>
-       <width>47</width>
+       <width>67</width>
        <height>19</height>
       </rect>
      </property>
@@ -489,7 +531,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>2:21.03</string>
+      <string>0:00.00</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -505,7 +547,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>2:21.03</string>
+      <string>0:00.00</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -521,7 +563,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>2:21.03</string>
+      <string>0:00.00</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -537,7 +579,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>2:21.03</string>
+      <string>0:00.00</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -553,7 +595,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>2:21.03</string>
+      <string>0:00.00</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -569,7 +611,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>2:21.03</string>
+      <string>0:00.00</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -580,7 +622,7 @@
       <rect>
        <x>306</x>
        <y>48</y>
-       <width>47</width>
+       <width>67</width>
        <height>25</height>
       </rect>
      </property>
@@ -599,7 +641,7 @@
       <rect>
        <x>306</x>
        <y>78</y>
-       <width>47</width>
+       <width>67</width>
        <height>19</height>
       </rect>
      </property>
@@ -618,7 +660,7 @@
       <rect>
        <x>306</x>
        <y>102</y>
-       <width>47</width>
+       <width>67</width>
        <height>19</height>
       </rect>
      </property>
@@ -637,7 +679,7 @@
       <rect>
        <x>306</x>
        <y>126</y>
-       <width>47</width>
+       <width>67</width>
        <height>19</height>
       </rect>
      </property>
@@ -656,7 +698,7 @@
       <rect>
        <x>306</x>
        <y>150</y>
-       <width>47</width>
+       <width>67</width>
        <height>19</height>
       </rect>
      </property>
@@ -675,7 +717,7 @@
       <rect>
        <x>306</x>
        <y>174</y>
-       <width>47</width>
+       <width>67</width>
        <height>19</height>
       </rect>
      </property>
@@ -689,6 +731,48 @@
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
      </property>
     </widget>
+   </widget>
+   <widget class="QLabel" name="status_label">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>198</y>
+      <width>307</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Segoe UI Semibold</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="quit_button">
+    <property name="geometry">
+     <rect>
+      <x>312</x>
+      <y>198</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Segoe UI Semibold</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Quit</string>
+    </property>
    </widget>
   </widget>
  </widget>
