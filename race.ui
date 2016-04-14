@@ -1125,6 +1125,9 @@
        <pointsize>36</pointsize>
       </font>
      </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
      <property name="intValue" stdset="0">
       <number>0</number>
      </property>

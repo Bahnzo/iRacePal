@@ -23,9 +23,6 @@ import race
 from time import sleep
 import math
 
-#ir = irsdk.IRSDK()
-#ir.startup(test_file='data.bin')
-
 
 class RaceWindow(QMainWindow, race.Ui_RaceWindow):
     def __init__(self, parent=None):
@@ -33,6 +30,7 @@ class RaceWindow(QMainWindow, race.Ui_RaceWindow):
         self.setupUi(self)
 
         #self.frame.setStyleSheet('background-color:grey')
+        self.version_label.setText('v0.1a')
         self.thread = Worker()
         self.thread.name_p4[list].connect(self.display_drivers)
         self.thread.status[str].connect(self.show_status)
@@ -132,6 +130,7 @@ class TrackInfo():
         self.skies = skies
         self.race_dist = race_dist
 
+
 class Worker(QThread):
     """
     The main thread
@@ -146,7 +145,6 @@ class Worker(QThread):
     def __init__(self):
         super().__init__()
         self.ir = irsdk.IRSDK()
-        #self.ir.startup()
         self.driver_lib = {}  # lib for drivers and their idx
         self.racer_info = []  # a list of the Racer() class which contains the driver info
 
@@ -195,7 +193,6 @@ class Worker(QThread):
                 sleep(1)
 
     def loop(self):  # main loop executed during race
-        # self.ir.freeze_var_buffer_latest()
         #self.car_positions = self.ir['CarIdxClassPosition']  # gets a list of all cars positions by class
         self.car_positions = self.ir['CarIdxPosition']  # gets a list of car positions regardless of class
         self.driver_pos = self.car_positions[self.DriverCarIdx]  # the players position
@@ -210,11 +207,11 @@ class Worker(QThread):
         time = dt.toString('h:mm:ssap')
         self.curr_time.emit(time)
 
-    def conv_c(self, temp):
+    def conv_c(self, temp):  # converts F to C
         x = round((temp * 9 / 5) + 32)
         return str(x)
 
-    def conv_k(self, speed):
+    def conv_k(self, speed):  # converts kph to mph
         x = speed * 0.6213711922
         return x
 
@@ -243,7 +240,6 @@ class Worker(QThread):
         self.track_name = self.ir['WeekendInfo']['TrackDisplayName']
         self.track_weather = self.ir['WeekendInfo']['TrackWeatherType']  # constant or dynamic
         self.metric = self.ir['DisplayUnits']
-        #self.pit_speed = self.get_pit_speed(self.ir['WeekendInfo']['TrackPitSpeedLimit'])  # in kph
         if self.ir['WeekendInfo']['EventType'] is not 'Race':
             self.race_laps = 'Practice'
         else:
@@ -260,7 +256,7 @@ class Worker(QThread):
             t_temp = round(self.ir['TrackTempCrew'])
             track_temp = '{}{}'.format(str(t_temp), 'C')
         degrees = round(math.degrees(self.ir['WindDir']))
-        wind_txt = self.winddir_text(degrees)
+        wind_txt = self.winddir_text(float(degrees))
         wind_dir = wind_txt
         if not self.metric:
             wind_vel = str(round(self.ir['WindVel'] / 0.44704))
@@ -277,7 +273,9 @@ class Worker(QThread):
         "Convert wind direction from 0..15 to compass point text"
         if pts is None:
             return None
-        pts = int(pts + 0.5) % 16
+        i = int((pts + 11.25)/22.5)
+        pts = i % 16
+        #pts = int(pts + 0.5) % 16
         winddir_text_array = (('N'),('NNE'),('NE'),('ENE'),('E'),('ESE'),('SE'),('SSE'),('S'),('SSW'),('SW'),('WSW'),('W'),('WNW'),('NW'),('NNW'),)
 
         return winddir_text_array[pts]

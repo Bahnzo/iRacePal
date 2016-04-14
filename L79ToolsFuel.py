@@ -271,7 +271,9 @@ class Worker(QThread):
         "Convert wind direction from 0..15 to compass point text"
         if pts is None:
             return None
-        pts = int(pts + 0.5) % 16
+        i = int((pts + 11.25)/22.5)
+        pts = i % 16
+        #pts = int(pts + 0.5) % 16
         winddir_text_array = (('N'),('NNE'),('NE'),('ENE'),('E'),('ESE'),('SE'),('SSE'),('S'),('SSW'),('SW'),('WSW'),('W'),('WNW'),('NW'),('NNW'),)
 
         return winddir_text_array[pts]
@@ -287,7 +289,7 @@ class StartWindow(QMainWindow, TopWindow.Ui_TopWindow):
         super(StartWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.version_label.setText('v1.4')
+        self.version_label.setText('v1.4a')
         self.lcd_palette = self.laps_completed_lcd.palette()
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
