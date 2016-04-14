@@ -11,6 +11,15 @@ most recent lap times of those cars around. Will then show the time difference, 
 '''
 TODO: fuel calculations. Do an average over a 3 lap span, throwing out odd readings (ie: first lap, pace laps)
 TODO: color backgrounds based on fuel calculations?
+HTML color codes:
+GREENS:
+#ccffdd - very light green....black text
+#66ff99 - light green
+#0099cc - green
+REDS:
+#ffccc - light red...black text
+#ff8080 - red
+#ff1a1a - dark red..black text ok...maybe white
 
 ir['SessionInfo']['Sessions'][2]['ResultsPositions'] = car data by IDX..ie lap times, etc
 '''
@@ -22,6 +31,7 @@ import sys
 import race
 from time import sleep
 import math
+import os
 
 
 class RaceWindow(QMainWindow, race.Ui_RaceWindow):
@@ -30,14 +40,18 @@ class RaceWindow(QMainWindow, race.Ui_RaceWindow):
         self.setupUi(self)
 
         #self.frame.setStyleSheet('background-color:grey')
-        self.version_label.setText('v0.1a')
+        self.version_label.setText('v0.2')
         self.thread = Worker()
         self.thread.name_p4[list].connect(self.display_drivers)
         self.thread.status[str].connect(self.show_status)
         self.thread.weather[object].connect(self.show_weather)
         self.thread.curr_time[str].connect(self.show_time)
+        self.thread.laps2go[int].connect(self.show_laps_remaining)
         #self.laps_left_lcd.setStyleSheet('background-color: green') <- how to set background color
         self.thread.start()
+
+    def show_laps_remaining(self, i):
+        self.laps_left_lcd.display(i)
 
     def show_time(self, i):
         self.time_label.setText(i)
@@ -141,12 +155,15 @@ class Worker(QThread):
     weather = pyqtSignal(object)
     tire_temps = pyqtSignal(object)
     curr_time = pyqtSignal(str)
+    laps2go = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
         self.ir = irsdk.IRSDK()
         self.driver_lib = {}  # lib for drivers and their idx
         self.racer_info = []  # a list of the Racer() class which contains the driver info
+        self.avg_fuel_list = []  # list of drivers avg fuel use
+        self.avgfuellaps = 5  # num of laps to average fuel over
 
     def __del__(self):
         self.wait()
@@ -163,10 +180,14 @@ class Worker(QThread):
                 self.status.emit('iRacing Found - Waiting for Session')
                 if self.ir['SessionState'] == 4 and self.ir['SessionNum'] == 2:  # 4 = racing 2 = race session
                     self.status.emit('In Race')
+                    self.current_lap = self.ir['Lap']
                     self.get_race_details()
                     self.get_weather()
                     self.get_drivers()
+                    self.car_type_long = self.ir['DriverInfo']['Drivers'][self.DriverCarIdx]['CarPath']
+                    self.fuel_store = self.ir['FuelLevel']
                     self.DriverCarIdx = self.ir['DriverInfo']['DriverCarIdx']  # the player/driver's carIdx
+                    self.is_imp()  # if car uses IMP gallons or not
                     while True:
                         if self.ir.startup() == 0:
                             break
@@ -175,6 +196,7 @@ class Worker(QThread):
                             if self.ir['CarIdxTrackSurface'][self.DriverCarIdx] == 1:  # car in pits
                                 self.status.emit('In Race, Car in Pits')
                                 self.set_time()
+                                self.avg_fuel_list = []
                                 sleep(1)
                             elif self.ir['SessionState'] == 5:
                                 self.status.emit('Race over')
@@ -197,10 +219,22 @@ class Worker(QThread):
         self.car_positions = self.ir['CarIdxPosition']  # gets a list of car positions regardless of class
         self.driver_pos = self.car_positions[self.DriverCarIdx]  # the players position
         self.get_driver_positions()
+        self.session_laps_remaining()
+        self.get_avg_fuel()
         if self.ir['WeatherType']:
             self.get_weather()
         self.set_time()
         self.display_drivers()
+
+    def is_imp(self):
+        if self.car_type_long == 'lotus79' or 'lotus49':
+            return True
+        else:
+            return False
+
+    def session_laps_remaining(self):
+        self.laps_remain = self.ir['SessionLapsRemain']
+        self.laps2go.emit(self.laps_remain)
 
     def set_time(self):
         dt = QTime.currentTime()
@@ -215,11 +249,11 @@ class Worker(QThread):
         x = speed * 0.6213711922
         return x
 
-    def get_pit_speed(self, speed):
-        if not self.metric:
-            return str(self.conv_k(speed))
-        else:
-            return str(speed)
+    def conv_imp(self, fuel):  # converts liters to imp gallons
+        return fuel * 0.21997
+
+    def conv_gal(self, fuel):  # converts liters to gallons
+        return fuel * 0.264
 
     def get_sky_condition(self, skies):
         if skies == 0:
@@ -237,7 +271,10 @@ class Worker(QThread):
         Gets all sorts of static variables about the session/race for use later
         :return:
         """
-        self.track_name = self.ir['WeekendInfo']['TrackDisplayName']
+        self.DriverCarIdx = self.ir['DriverInfo']['DriverCarIdx']  # the player/driver's carIdx
+        self.car_type_long = self.ir['DriverInfo']['Drivers'][self.DriverCarIdx]['CarPath']
+        self.is_imp()  # if car uses IMP gallons or not
+        self.trackname = self.ir['WeekendInfo']['TrackDisplayShortName']
         self.track_weather = self.ir['WeekendInfo']['TrackWeatherType']  # constant or dynamic
         self.metric = self.ir['DisplayUnits']
         if self.ir['WeekendInfo']['EventType'] is not 'Race':
@@ -246,6 +283,10 @@ class Worker(QThread):
             self.race_laps = str(self.ir['SessionInfo']['Sessions'][2]['SessionLaps'])
         self.sky_cond = self.get_sky_condition(self.ir['WeekendInfo']['WeekendOptions']['Skies'])
         self.num_classes = self.ir['WeekendInfo']['NumCarClasses']
+        self.track_config = self.ir['WeekendInfo']['TrackConfigName']
+        if self.track_config == None:
+            self.track_config = 'None'
+        fuel_used = (self.open_file(self.trackname, self.track_config, self.car_type_long))
 
     def get_weather(self):
         w_type = self.ir['WeatherType']  # 0=constant, 1=dynamic
@@ -351,6 +392,74 @@ class Worker(QThread):
     def display_drivers(self):
         self.name_p4.emit(self.racer_info)
 
+    def get_avg_fuel(self):
+        if self.ir['Lap'] > self.current_lap:  # do fuel average
+            count = 0
+            fuel_hold = 0
+            fpl = self.fuel_store - self.ir['FuelLevel']
+            self.write_lap(fpl)
+            self.avg_fuel_list.append(fpl)
+            self.current_lap = self.ir['Lap']  # reset current lap
+            #self.avg_fuel = mean(self.avg_fuel_list)
+            if len(self.avg_fuel_list) > self.avgfuellaps:
+                for fuel in reversed(self.avg_fuel_list):
+                    fuel_hold += fuel
+                    count += 1
+                    if count == self.avgfuellaps:
+                        break
+                self.avg_fuel = fuel_hold / self.avgfuellaps
+                self.display_laps_remaining()
+            else:
+                self.avg_fuel = self.avg_fuel_calculation()
+                self.display_laps_remaining()
+            self.fuel_store = self.ir['FuelLevel']
+
+    def get_fuel_laps_color(self, laps):
+        if laps > self.laps_remain_race:
+            return 'green'
+        else:
+            return 'red'
+
+    def avg_fuel_calculation(self):
+            fuel_used = (self.open_file(self.trackname, self.track_config, self.car_type_long))
+            data = [float(line) for line in fuel_used]
+            try:
+                avg = sum(data) / float(len(data))
+            except ZeroDivisionError:
+                avg = 0
+            return avg
+
+    def display_laps_remaining(self):
+        y = []
+        try:
+            if not self.metric:
+                if self.is_imp():
+                    laps_remain = ((self.ir['FuelLevel'] * 0.21997) / (self.avg_fuel * 0.21997))  # conv imp gallons
+                else:
+                    laps_remain = ((self.ir['FuelLevel'] * 0.264) / (self.avg_fuel * 0.264))  # convert gallons
+            else:
+                laps_remain = ((self.ir['FuelLevel']) / self.avg_fuel)
+        except ZeroDivisionError:
+            laps_remain = 0.0
+        x = self.get_fuel_laps_color(laps_remain)
+        y.append(laps_remain)
+        y.append(x)
+        self.laps_fuel.emit(y)
+
+    def open_file(self, track, config, car):
+        filename = './data/{}/{}-{}.txt'.format(car, track, config)
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, 'a+') as f:
+            f.seek(0)
+            data = f.readlines()
+        data = [line.strip('\n') for line in data]
+        f.close()
+        return data
+
+    def write_lap(self, fuel):
+        with open('./data/{}/{}-{}.txt'.format(self.car_type_long, self.trackname, self.track_config), 'a') as f:
+            f.write('{}\n'.format(fuel))
+        f.close()
 
 
 def main():

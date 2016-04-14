@@ -222,20 +222,20 @@ class Worker(QThread):
         return avg
 
     def open_file(self, track, config, car):
-        lap_regex = re.compile(r'(.+,)')
+        #lap_regex = re.compile(r'(.+,)')
         filename = './data/{}/{}-{}.txt'.format(car, track, config)
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, 'a+') as f:
             f.seek(0)
             data = f.readlines()
         data = [line.strip('\n') for line in data]
-        data = [m.group(1).rstrip(',') for l in data for m in [lap_regex.search(l)] if m]
+        #data = [m.group(1).rstrip(',') for l in data for m in [lap_regex.search(l)] if m]
         f.close()
         return data
 
     def write_lap(self, fuel, weight):
         with open('./data/{}/{}-{}.txt'.format(self.car_type, self.trackname, self.track_config), 'a') as f:
-            f.write('{}, {}\n'.format(fuel, weight))
+            f.write('{}\n'.format(fuel, weight))
         f.close()
 
     def display_fuel_in_car(self):
