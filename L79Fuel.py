@@ -1,13 +1,5 @@
 #! python3
-# L79ToolsFuel.py - a program to get exact fuel calculations for iRacing
-
-# liter to gallons = L * 0.26417
-# 'DriverInfo''DriverCarFuelKgPerLtr' - weight of fuel
-# 'DriverCarIdx' - index of driver's car
-# FuelLevel - in liters remaining
-# FuelUsePerHour - in kg/h
-# Speed = meters/second
-# LFwearM - wear in percent
+# L79Fuel.py - a program to get exact fuel calculations for iRacing
 
 # TODO: checkbox for deleting car file
 
@@ -18,11 +10,10 @@ import TopWindow
 import irsdk
 from time import sleep
 import math
-import re
+#from L79Race import RaceWindow
+import L79Tools
 import os
 import logging
-import traceback
-
 
 fuel_used = []  # global for fuel used
 
@@ -40,13 +31,17 @@ class Worker(QThread):
     curr_time = pyqtSignal(str)
     session_left = pyqtSignal(str)
     laps_label = pyqtSignal(str)
+    race = pyqtSignal()
 
     def __init__(self):
         super().__init__()
         self.ir = irsdk.IRSDK()
-
+    '''
     def __del__(self):
         self.wait()
+    '''
+    def stop(self):
+        self.terminate()
 
     def look_for_sim(self):
         count = 0
@@ -59,6 +54,7 @@ class Worker(QThread):
                 self.set_session_time_left()
                 self.look_for_car()
             else:
+                self.race.emit()
                 self.status.emit('Waiting for iRacing: {}'.format(count))
                 self.set_time()
                 count += 1
@@ -138,8 +134,18 @@ class Worker(QThread):
                         self.display_fuel_in_car()
                         self.display_laps_remaining(avg)
                         sleep(0.0016)  # 16ms
+                        if self.ir['WeekendInfo']['EventType'] == 'Race':
+                            self.race.emit()
+                            sleep(0.0016)
+                            break
+                        if self.ir.startup() == 0:
+                            break
             else:
                 if self.ir.startup() == 0:
+                    break
+                if self.ir['WeekendInfo']['EventType'] == 'Race':
+                    self.race.emit()
+                    sleep(0.0016)
                     break
                 self.status.emit('Waiting for Driver in car.')
                 self.current_stint = 0
@@ -282,14 +288,14 @@ class Worker(QThread):
         self.look_for_sim()
 
 
-class StartWindow(QMainWindow, TopWindow.Ui_TopWindow):
+class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
     global fuel_used
 
     def __init__(self, parent=None):
-        super(StartWindow, self).__init__(parent)
+        super(FuelWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.version_label.setText('v1.4a')
+        self.version_label.setText('v0.2')
         self.lcd_palette = self.laps_completed_lcd.palette()
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
@@ -309,6 +315,18 @@ class StartWindow(QMainWindow, TopWindow.Ui_TopWindow):
         self.thread.start()
         self.quit_button.clicked.connect(self.quit_button_pushed)
         self.race_laps.valueChanged.connect(self.set_fuel_needed2)
+        self.thread.race.connect(self.start_race)
+
+#    def closeEvent(self, evnt):
+#        self.thread.terminate()
+#        self.destroy()
+
+    def start_race(self):
+        self.thread.stop()
+        self.thread.wait()
+        self.r_window = L79Tools.FirstWindow(self)
+        self.r_window.show()
+        self.hide()
 
     def set_laps_label(self, i):
         self.laps_label.setText(i)
@@ -362,43 +380,17 @@ class StartWindow(QMainWindow, TopWindow.Ui_TopWindow):
 
 def main():
     app = QApplication(sys.argv)
-    window = StartWindow()
+    window = FuelWindow()
     window.show()
+    #app.exec_()
     sys.exit(app.exec_())
 
-'''
-def setup_logging_to_file(filename):
-    logging.basicConfig(filename=filename,
-                        filemode='w',
-                        level=logging.DEBUG,
-                        format='%(asctime)s - %(levelname)s - %(message)s',
-                        )
-
-
-def extract_function_name():
-    """Extracts failing function name from Traceback
-    by Alex Martelli
-    http://stackoverflow.com/questions/2380073/\
-    how-to-identify-what-function-call-raise-an-exception-in-python
-    """
-    tb = sys.exc_info()[-1]
-    stk = traceback.extract_tb(tb, 1)
-    fname = stk[0][3]
-    return fname
-
-
-def log_exception(e):
-    logging.error(
-        "Function {function_name} raised {exception_class} ({exception_docstring}): {exception_message}".format(
-            function_name=extract_function_name(),  # this is optional
-            exception_class=e.__class__,
-            exception_docstring=e.__doc__,
-            exception_message=e.message))
-'''
-logf = open('error.log', 'w')
+logging.basicConfig(filename='error.log', level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)s %(name)s %(message)s')
+logger=logging.getLogger(__name__)
 
 if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        logf.write(str(e))
+        logger.error(e)

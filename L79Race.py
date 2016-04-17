@@ -23,7 +23,6 @@ REDS:
 
 ir['SessionInfo']['Sessions'][2]['ResultsPositions'] = car data by IDX..ie lap times, etc
 '''
-
 import irsdk
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtCore import *
@@ -32,6 +31,11 @@ import race
 from time import sleep
 import math
 import os
+import logging
+
+logging.basicConfig(filename='error.log', level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)s %(name)s %(message)s')
+logger=logging.getLogger(__name__)
 
 
 class RaceWindow(QMainWindow, race.Ui_RaceWindow):
@@ -40,15 +44,20 @@ class RaceWindow(QMainWindow, race.Ui_RaceWindow):
         self.setupUi(self)
 
         #self.frame.setStyleSheet('background-color:grey')
-        self.version_label.setText('v0.2')
+        self.version_label.setText('v0.3')
         self.thread = Worker()
         self.thread.name_p4[list].connect(self.display_drivers)
         self.thread.status[str].connect(self.show_status)
         self.thread.weather[object].connect(self.show_weather)
         self.thread.curr_time[str].connect(self.show_time)
         self.thread.laps2go[int].connect(self.show_laps_remaining)
-        #self.laps_left_lcd.setStyleSheet('background-color: green') <- how to set background color
+        self.thread.laps_fuel[list].connect(self.show_fuel_laps_remaining)
         self.thread.start()
+
+
+    def show_fuel_laps_remaining(self, i):
+        self.laps_empty_lcd.display(i[0])
+        self.laps_empty_lcd.setStyleSheet('background-color: {}'.format(i[1]))
 
     def show_laps_remaining(self, i):
         self.laps_left_lcd.display(i)
@@ -156,6 +165,7 @@ class Worker(QThread):
     tire_temps = pyqtSignal(object)
     curr_time = pyqtSignal(str)
     laps2go = pyqtSignal(int)
+    laps_fuel = pyqtSignal(list)
 
     def __init__(self):
         super().__init__()
@@ -171,6 +181,9 @@ class Worker(QThread):
     def run(self):
         self.find_sim()
 
+    def stop(self):
+        self.terminate()
+
     def find_sim(self):
         while True:
             if self.ir.startup():
@@ -179,7 +192,6 @@ class Worker(QThread):
                 self.set_time()
                 self.status.emit('iRacing Found - Waiting for Session')
                 if self.ir['SessionState'] == 4 and self.ir['SessionNum'] == 2:  # 4 = racing 2 = race session
-                    self.status.emit('In Race')
                     self.current_lap = self.ir['Lap']
                     self.get_race_details()
                     self.get_weather()
@@ -189,6 +201,8 @@ class Worker(QThread):
                     self.DriverCarIdx = self.ir['DriverInfo']['DriverCarIdx']  # the player/driver's carIdx
                     self.is_imp()  # if car uses IMP gallons or not
                     while True:
+                        self.status.emit('In Race')
+                        self.current_lap = self.ir['Lap']
                         if self.ir.startup() == 0:
                             break
                         try:  # attempt at an error catching loop
@@ -199,15 +213,20 @@ class Worker(QThread):
                                 self.avg_fuel_list = []
                                 sleep(1)
                             elif self.ir['SessionState'] == 5:
-                                self.status.emit('Race over')
+                                self.status.emit('Race over. Please Close.')
                                 break
                             else:
-                                self.loop()
-                                sleep(0.0016)  # 16ms
+                                if self.current_lap > 0:
+                                    self.loop()
+                                    sleep(0.0016)  # 16ms
                         except Exception as e:
-                                logf.write(str(e))
+                                logging.exception(e)
+                elif self.ir['SessionState'] == 3:
+                    self.status.emit('Warmup Laps')
+                    sleep(0.0016)
                 else:
                     self.status.emit('Waiting for Race Session')
+                    #self.get_drivers()
                     sleep(1)
             else:
                 self.status.emit('Looking For iRacing')
@@ -233,8 +252,8 @@ class Worker(QThread):
             return False
 
     def session_laps_remaining(self):
-        self.laps_remain = self.ir['SessionLapsRemain']
-        self.laps2go.emit(self.laps_remain)
+        self.laps_remaining = self.ir['SessionLapsRemainEx']
+        self.laps2go.emit(self.laps_remaining)
 
     def set_time(self):
         dt = QTime.currentTime()
@@ -286,6 +305,12 @@ class Worker(QThread):
         self.track_config = self.ir['WeekendInfo']['TrackConfigName']
         if self.track_config == None:
             self.track_config = 'None'
+        if self.ir['WeekendInfo']['Category'] == 'Road':
+            self.race_type = True
+            self.avgfuellaps = 3  # use last three laps for avg fuel on road course
+        else:
+            self.race_type = False
+            self.avgfuellaps = 5  # use last 5 laps for avg fuel on oval
         fuel_used = (self.open_file(self.trackname, self.track_config, self.car_type_long))
 
     def get_weather(self):
@@ -331,6 +356,8 @@ class Worker(QThread):
             if position == pos:
                 idx = Caridx
                 break
+            else:  # for some reason I can't find, this sometimes doesn't find the idx. In pits?
+                idx = 1
         return idx
 
     def convert_laptime(self, lap):  # converts lap to min:sec:ms if needed
@@ -351,43 +378,48 @@ class Worker(QThread):
             count -= 1
 
     def get_driver_positions(self):  # this is main function for getting drivers needed for positions
-        total_drivers = len(self.ir['SessionInfo']['Sessions'][2]['ResultsPositions'])
-        if self.driver_pos == total_drivers:  # player is in last place
-            count = self.driver_pos
-            low_limit = self.driver_pos - 6  # low_limit is how low in the placings to get driver positions
-        elif self.driver_pos == total_drivers - 1:  # second to last place
-            count = self.driver_pos + 1
-            low_limit = self.driver_pos - 5
-        elif self.driver_pos == total_drivers - 2: #  third from last
-            count = self.driver_pos + 2
-            low_limit = self.driver_pos - 4
-        elif self.driver_pos <= 3:  # driver is in top 3
-            count = 7
-            low_limit = 1
-        else:
-            count = self.driver_pos + 3
-            low_limit = self.driver_pos - 3
-        self.racer_info.clear()  #  empty list in prep for new drivers
-        while count >= low_limit:
-            pos = count
-            idx = self.get_driver_idx_by_pos(pos, self.car_positions)
-            name = self.driver_lib[idx]
-            rawlap = self.ir['SessionInfo']['Sessions'][2]['ResultsPositions'][pos - 1]['LastTime']
-            if rawlap > 0:  # some backmarkers might not have a lap time because they in garage
-                laptime = self.convert_laptime(rawlap)
+        try:
+            total_drivers = len(self.ir['SessionInfo']['Sessions'][2]['ResultsPositions'])
+            if self.driver_pos == total_drivers:  # player is in last place
+                count = self.driver_pos
+                low_limit = self.driver_pos - 6  # low_limit is how low in the placings to get driver positions
+                if low_limit <= 0:
+                    low_limit = 1
+            elif self.driver_pos == total_drivers - 1:  # second to last place
+                count = self.driver_pos + 1
+                low_limit = self.driver_pos - 5
+            elif self.driver_pos == total_drivers - 2: #  third from last
+                count = self.driver_pos + 2
+                low_limit = self.driver_pos - 4
+            elif self.driver_pos <= 3:  # driver is in top 3
+                count = 7
+                low_limit = 1
             else:
-                rawlap = 0.00
-                laptime = 0.00
-            if idx == self.DriverCarIdx:
-                player = True
-            else:
-                player = False
-            car_type = self.ir['DriverInfo']['Drivers'][idx]['CarScreenNameShort']
-            cur_lap = self.ir['SessionInfo']['Sessions'][2]['ResultsPositions'][pos - 1]['LapsComplete']
-            classID = self.ir['DriverInfo']['Drivers'][idx]['CarClassID']
-            car = Racer(pos, name, laptime, rawlap, player, cur_lap, car_type, classID)
-            self.racer_info.append(car)
-            count -= 1
+                count = self.driver_pos + 3
+                low_limit = self.driver_pos - 3
+            self.racer_info.clear()  #  empty list in prep for new drivers
+            while count >= low_limit:
+                pos = count
+                idx = self.get_driver_idx_by_pos(pos, self.car_positions)
+                name = self.driver_lib[idx]
+                rawlap = self.ir['SessionInfo']['Sessions'][2]['ResultsPositions'][pos - 1]['LastTime']
+                if rawlap > 0:  # some backmarkers might not have a lap time because they in garage
+                    laptime = self.convert_laptime(rawlap)
+                else:
+                    rawlap = 0.00
+                    laptime = 0.00
+                if idx == self.DriverCarIdx:
+                    player = True
+                else:
+                    player = False
+                car_type = self.ir['DriverInfo']['Drivers'][idx]['CarScreenNameShort']
+                cur_lap = self.ir['SessionInfo']['Sessions'][2]['ResultsPositions'][pos - 1]['LapsComplete']
+                classID = self.ir['DriverInfo']['Drivers'][idx]['CarClassID']
+                car = Racer(pos, name, laptime, rawlap, player, cur_lap, car_type, classID)
+                self.racer_info.append(car)
+                count -= 1
+        except TypeError:
+            pass
 
     def display_drivers(self):
         self.name_p4.emit(self.racer_info)
@@ -399,9 +431,10 @@ class Worker(QThread):
             fpl = self.fuel_store - self.ir['FuelLevel']
             self.write_lap(fpl)
             self.avg_fuel_list.append(fpl)
-            self.current_lap = self.ir['Lap']  # reset current lap
+            #logging.warning('{}'.format(self.avg_fuel_list))
+            self.current_lap = self.ir['Lap']  # reset current lap fuel
             #self.avg_fuel = mean(self.avg_fuel_list)
-            if len(self.avg_fuel_list) > self.avgfuellaps:
+            if len(self.avg_fuel_list) >= self.avgfuellaps:
                 for fuel in reversed(self.avg_fuel_list):
                     fuel_hold += fuel
                     count += 1
@@ -415,7 +448,7 @@ class Worker(QThread):
             self.fuel_store = self.ir['FuelLevel']
 
     def get_fuel_laps_color(self, laps):
-        if laps > self.laps_remain_race:
+        if laps > self.laps_remaining:
             return 'green'
         else:
             return 'red'
@@ -468,10 +501,12 @@ def main():
     window.show()
     sys.exit(app.exec_())
 
-logf = open('error.log', 'w')
+#logf = open('error.log', 'w')
+
 
 if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        logf.write(str(e))
+        logger.error(e)
+        #logf.write(str(e))
