@@ -42,6 +42,7 @@ class Worker(QThread):
     '''
     def stop(self):
         self.terminate()
+        self.ir.shutdown()
 
     def look_for_sim(self):
         count = 0
@@ -110,14 +111,14 @@ class Worker(QThread):
                                     self.avg_fuel_used.emit(avg * 0.264)  # gallons
                             else:
                                 self.avg_fuel_used.emit(avg)
-                            weight_of_fuel = self.ir['FuelLevel'] * self.ir['DriverInfo']['DriverCarFuelKgPerLtr']
+                            #weight_of_fuel = self.ir['FuelLevel'] * self.ir['DriverInfo']['DriverCarFuelKgPerLtr']
                             if lap_store:  # don't store data from first lap out of pits
                                 if self.average_fuel_limit(avg, fpl) and len(fuel_used) > 5:  #  check that lap usage is within set limits
-                                    self.write_lap(fpl, weight_of_fuel)  # write lap data to file
+                                    self.write_lap(fpl)  # write lap data to file
                                     fuel_used.append(fuel_store - self.ir['FuelLevel'])  # fuel use list
                                     data = [float(line) for line in fuel_used]
                                 if len(fuel_used) <= 5: #  write anyways, gotta have some data!
-                                    self.write_lap(fpl, weight_of_fuel)  # write lap data to file
+                                    self.write_lap(fpl)  # write lap data to file
                                     fuel_used.append(fuel_store - self.ir['FuelLevel'])  # fuel use list
                                     data = [float(line) for line in fuel_used]
                                 try:
@@ -239,9 +240,9 @@ class Worker(QThread):
         f.close()
         return data
 
-    def write_lap(self, fuel, weight):
+    def write_lap(self, fuel):
         with open('./data/{}/{}-{}.txt'.format(self.car_type, self.trackname, self.track_config), 'a') as f:
-            f.write('{}\n'.format(fuel, weight))
+            f.write('{}\n'.format(fuel))
         f.close()
 
     def display_fuel_in_car(self):

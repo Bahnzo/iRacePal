@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>logo.ico</normaloff>logo.ico</iconset>
+    <normaloff>logo.png</normaloff>logo.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QFrame" name="position_frame">
@@ -1124,6 +1124,9 @@
       <font>
        <pointsize>36</pointsize>
       </font>
+     </property>
+     <property name="toolTip">
+      <string>Laps Remaining in Race</string>
      </property>
      <property name="autoFillBackground">
       <bool>false</bool>

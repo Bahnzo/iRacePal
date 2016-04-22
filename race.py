@@ -13,7 +13,7 @@ class Ui_RaceWindow(object):
         RaceWindow.setObjectName("RaceWindow")
         RaceWindow.resize(435, 377)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("logo.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         RaceWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(RaceWindow)
         self.centralwidget.setObjectName("centralwidget")

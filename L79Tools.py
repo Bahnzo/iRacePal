@@ -1,7 +1,5 @@
 import firstWindow
 import irsdk
-#from L79Fuel import FuelWindow
-#from L79Race import RaceWindow
 import L79Fuel
 import L79Race
 from PyQt5.QtWidgets import QMainWindow, QApplication
@@ -16,7 +14,7 @@ class FirstWindow(QMainWindow, firstWindow.Ui_WindowOne):
         super(FirstWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.version_label.setText('v0.2')
+        self.version_label.setText('v0.3')
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
         self.thread.race.connect(self.run_race)
@@ -85,10 +83,13 @@ class Worker(QThread):
 
     def determine_session(self):
         if self.ir['WeekendInfo']['EventType'] == 'Race':
+            self.ir.shutdown()
             self.race.emit()
         elif self.ir['WeekendInfo']['EventType'] == 'Test':
+            self.ir.shutdown()
             self.practice.emit()
         elif self.ir['WeekendInfo']['EventType'] == 'Practice':
+            self.ir.shutdown()
             self.practice.emit()
 
 def main():

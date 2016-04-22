@@ -28,6 +28,8 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtCore import *
 import sys
 import race
+import race2
+import L79Tools
 from time import sleep
 import math
 import os
@@ -37,8 +39,11 @@ logging.basicConfig(filename='error.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(name)s %(message)s')
 logger=logging.getLogger(__name__)
 
+large = race.Ui_RaceWindow
+small = race2.Ui_raceSmall
+window_size = large
 
-class RaceWindow(QMainWindow, race.Ui_RaceWindow):
+class RaceWindow(QMainWindow, window_size):
     def __init__(self, parent=None):
         super(RaceWindow, self).__init__(parent)
         self.setupUi(self)
@@ -52,8 +57,17 @@ class RaceWindow(QMainWindow, race.Ui_RaceWindow):
         self.thread.curr_time[str].connect(self.show_time)
         self.thread.laps2go[int].connect(self.show_laps_remaining)
         self.thread.laps_fuel[list].connect(self.show_fuel_laps_remaining)
+        self.thread.race_over.connect(self.race_done)
         self.thread.start()
 
+    def race_done(self):
+        self.thread.stop()
+        self.thread.wait()
+        self.status_label.setText('Race Over')
+
+    def closeEvent(self, event):
+        self.thread.stop()
+        self.thread.wait()
 
     def show_fuel_laps_remaining(self, i):
         self.laps_empty_lcd.display(i[0])
@@ -166,6 +180,7 @@ class Worker(QThread):
     curr_time = pyqtSignal(str)
     laps2go = pyqtSignal(int)
     laps_fuel = pyqtSignal(list)
+    race_over = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -183,6 +198,7 @@ class Worker(QThread):
 
     def stop(self):
         self.terminate()
+        self.ir.shutdown()
 
     def find_sim(self):
         while True:
@@ -190,48 +206,58 @@ class Worker(QThread):
                 self.get_race_details()
                 self.get_weather()
                 self.set_time()
-                self.status.emit('iRacing Found - Waiting for Session')
-                if self.ir['SessionState'] == 4 and self.ir['SessionNum'] == 2:  # 4 = racing 2 = race session
-                    self.current_lap = self.ir['Lap']
-                    self.get_race_details()
-                    self.get_weather()
-                    self.get_drivers()
-                    self.car_type_long = self.ir['DriverInfo']['Drivers'][self.DriverCarIdx]['CarPath']
-                    self.fuel_store = self.ir['FuelLevel']
-                    self.DriverCarIdx = self.ir['DriverInfo']['DriverCarIdx']  # the player/driver's carIdx
-                    self.is_imp()  # if car uses IMP gallons or not
-                    while True:
-                        self.status.emit('In Race')
-                        self.current_lap = self.ir['Lap']
-                        if self.ir.startup() == 0:
-                            break
-                        try:  # attempt at an error catching loop
-                            self.ir.freeze_var_buffer_latest()  # freeze input so data doesn't change while doing stuff
-                            if self.ir['CarIdxTrackSurface'][self.DriverCarIdx] == 1:  # car in pits
-                                self.status.emit('In Race, Car in Pits')
-                                self.set_time()
-                                self.avg_fuel_list = []
-                                sleep(1)
-                            elif self.ir['SessionState'] == 5:
-                                self.status.emit('Race over. Please Close.')
-                                break
-                            else:
-                                if self.current_lap > 0:
-                                    self.loop()
-                                    sleep(0.0016)  # 16ms
-                        except Exception as e:
-                                logging.exception(e)
-                elif self.ir['SessionState'] == 3:
-                    self.status.emit('Warmup Laps')
-                    sleep(0.0016)
-                else:
-                    self.status.emit('Waiting for Race Session')
-                    #self.get_drivers()
-                    sleep(1)
+                #self.status.emit('iRacing Found - Waiting for Session')
+                self.determine_session()  # discover session type
             else:
                 self.status.emit('Looking For iRacing')
                 self.set_time()
                 sleep(1)
+
+    def determine_session(self):
+        if self.ir['SessionState'] == 4 and self.ir['SessionNum'] == 2:  # 4 = racing 2 = race session
+            self.green_flag_race()
+        elif self.ir['SessionState'] == 3:  # parade laps
+            self.status.emit('Warmup Laps')
+            sleep(0.0016)
+        elif self.ir['SessionState'] == 5 and self.ir['SessionNum'] == 2:
+            self.ir.shutdown()
+            self.race_over.emit()
+        else:
+            self.status.emit('Waiting for Race Session')
+            sleep(1)
+
+    def green_flag_race(self):
+        self.current_lap = self.ir['Lap']
+        self.get_race_details()
+        self.get_weather()
+        self.get_drivers()
+        self.car_type_long = self.ir['DriverInfo']['Drivers'][self.DriverCarIdx]['CarPath']
+        self.fuel_store = self.ir['FuelLevel']
+        self.DriverCarIdx = self.ir['DriverInfo']['DriverCarIdx']  # the player/driver's carIdx
+        self.is_imp()  # if car uses IMP gallons or not
+        while True:
+            self.status.emit('In Race')
+            self.current_lap = self.ir['Lap']
+            if self.ir.startup() == 0:
+                break
+            try:  # attempt at an error catching loop
+                self.ir.freeze_var_buffer_latest()  # freeze input so data doesn't change while doing stuff
+                if self.ir['CarIdxTrackSurface'][self.DriverCarIdx] == 1:  # car in pits
+                    self.status.emit('In Race, Car in Pits')
+                    self.set_time()
+                    self.avg_fuel_list = []
+                    sleep(1)
+                elif self.ir['SessionState'] == 5:  # look for race over
+                    self.ir.shutdown()
+                    self.race_over.emit()
+                else:
+                    if self.current_lap > 0:
+                        self.loop()  # main loop for getting driver info
+                        sleep(0.0016)  # 16ms
+            except Exception as e:
+                    logging.exception(e)
+
+
 
     def loop(self):  # main loop executed during race
         #self.car_positions = self.ir['CarIdxClassPosition']  # gets a list of all cars positions by class
@@ -295,11 +321,11 @@ class Worker(QThread):
         self.is_imp()  # if car uses IMP gallons or not
         self.trackname = self.ir['WeekendInfo']['TrackDisplayShortName']
         self.track_weather = self.ir['WeekendInfo']['TrackWeatherType']  # constant or dynamic
-        self.metric = self.ir['DisplayUnits']
-        if self.ir['WeekendInfo']['EventType'] is not 'Race':
-            self.race_laps = 'Practice'
-        else:
+        self.metric = self.ir['DisplayUnits']  # what measurement units is the player using
+        if self.ir['WeekendInfo']['EventType'] == 'Race':
             self.race_laps = str(self.ir['SessionInfo']['Sessions'][2]['SessionLaps'])
+        else:
+            self.race_laps = 'Practice'
         self.sky_cond = self.get_sky_condition(self.ir['WeekendInfo']['WeekendOptions']['Skies'])
         self.num_classes = self.ir['WeekendInfo']['NumCarClasses']
         self.track_config = self.ir['WeekendInfo']['TrackConfigName']
@@ -501,12 +527,9 @@ def main():
     window.show()
     sys.exit(app.exec_())
 
-#logf = open('error.log', 'w')
-
 
 if __name__ == '__main__':
     try:
         main()
     except Exception as e:
         logger.error(e)
-        #logf.write(str(e))
