@@ -48,8 +48,9 @@ class RaceWindow(QMainWindow, window_size):
         super(RaceWindow, self).__init__(parent)
         self.setupUi(self)
 
+        self.ok_button.hide()
         #self.frame.setStyleSheet('background-color:grey')
-        self.version_label.setText('v0.3')
+        self.version_label.setText('v0.4')
         self.thread = Worker()
         self.thread.name_p4[list].connect(self.display_drivers)
         self.thread.status[str].connect(self.show_status)
@@ -57,18 +58,25 @@ class RaceWindow(QMainWindow, window_size):
         self.thread.curr_time[str].connect(self.show_time)
         self.thread.laps2go[int].connect(self.show_laps_remaining)
         self.thread.laps_fuel[list].connect(self.show_fuel_laps_remaining)
-        self.thread.race_over.connect(self.race_done)
+        #self.thread.ok.connect(self.race_done)
+        self.thread.race_over.connect(self.show_ok_button)
         self.thread.start()
+        self.ok_button.clicked.connect(self.race_done)
+
+    def show_ok_button(self):
+        self.ok_button.show()
 
     def race_done(self):
         self.thread.stop()
         self.thread.wait()
-        self.status_label.setText('Race Over')
-
+        self.r_window = L79Tools.FirstWindow(self)
+        self.r_window.show()
+        self.hide()
+    '''
     def closeEvent(self, event):
         self.thread.stop()
         self.thread.wait()
-
+    '''
     def show_fuel_laps_remaining(self, i):
         self.laps_empty_lcd.display(i[0])
         self.laps_empty_lcd.setStyleSheet('background-color: {}'.format(i[1]))
@@ -181,6 +189,7 @@ class Worker(QThread):
     laps2go = pyqtSignal(int)
     laps_fuel = pyqtSignal(list)
     race_over = pyqtSignal()
+    #ok = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -219,9 +228,9 @@ class Worker(QThread):
         elif self.ir['SessionState'] == 3:  # parade laps
             self.status.emit('Warmup Laps')
             sleep(0.0016)
-        elif self.ir['SessionState'] == 5 and self.ir['SessionNum'] == 2:
-            self.ir.shutdown()
-            self.race_over.emit()
+        #elif self.ir['SessionState'] == 5 and self.ir['SessionNum'] == 2:
+        #    self.ir.shutdown()
+        #    self.race_over.emit()
         else:
             self.status.emit('Waiting for Race Session')
             sleep(1)
@@ -248,8 +257,9 @@ class Worker(QThread):
                     self.avg_fuel_list = []
                     sleep(1)
                 elif self.ir['SessionState'] == 5:  # look for race over
-                    self.ir.shutdown()
+                #    self.ir.shutdown()
                     self.race_over.emit()
+                    break
                 else:
                     if self.current_lap > 0:
                         self.loop()  # main loop for getting driver info
@@ -260,16 +270,19 @@ class Worker(QThread):
 
 
     def loop(self):  # main loop executed during race
-        #self.car_positions = self.ir['CarIdxClassPosition']  # gets a list of all cars positions by class
-        self.car_positions = self.ir['CarIdxPosition']  # gets a list of car positions regardless of class
-        self.driver_pos = self.car_positions[self.DriverCarIdx]  # the players position
-        self.get_driver_positions()
-        self.session_laps_remaining()
-        self.get_avg_fuel()
-        if self.ir['WeatherType']:
-            self.get_weather()
-        self.set_time()
-        self.display_drivers()
+        try:
+            #self.car_positions = self.ir['CarIdxClassPosition']  # gets a list of all cars positions by class
+            self.car_positions = self.ir['CarIdxPosition']  # gets a list of car positions regardless of class
+            self.driver_pos = self.car_positions[self.DriverCarIdx]  # the players position
+            self.get_driver_positions()
+            self.session_laps_remaining()
+            self.get_avg_fuel()
+            if self.ir['WeatherType']:
+                self.get_weather()
+            self.set_time()
+            self.display_drivers()
+        except Exception as e:
+            logging.exception(e)
 
     def is_imp(self):
         if self.car_type_long == 'lotus79' or 'lotus49':

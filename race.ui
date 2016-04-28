@@ -894,6 +894,23 @@
       <string>10:00:01 pm</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="ok_button">
+     <property name="geometry">
+      <rect>
+       <x>192</x>
+       <y>204</y>
+       <width>85</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(255, 0, 0);
+border-color: rgb(0, 85, 255);</string>
+     </property>
+     <property name="text">
+      <string>RESTART</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QFrame" name="weather_frame">
     <property name="geometry">

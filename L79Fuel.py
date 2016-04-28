@@ -32,6 +32,7 @@ class Worker(QThread):
     session_left = pyqtSignal(str)
     laps_label = pyqtSignal(str)
     race = pyqtSignal()
+    stint = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
@@ -73,7 +74,7 @@ class Worker(QThread):
                 self.current_lap = self.ir['Lap']
                 self.current_stint = 0
                 self.lap_switch = 1
-                self.show_stint = False
+                #self.show_stint = False
                 fuel_store = self.ir['FuelLevel']
                 self.laps.emit(str(self.current_lap))
                 self.trackname = self.ir['WeekendInfo']['TrackDisplayShortName']
@@ -130,8 +131,8 @@ class Worker(QThread):
                             fuel_store = self.ir['FuelLevel']
                         if self.ir['WeatherType']:
                             self.get_weather()
-                        self.lap_switch += 1
-                        self.show_lap_switch()  # changes between total laps, and laps completed since leaving pits
+                        #self.show_total_laps()  # changes between total laps, and laps completed since leaving pits
+                        self.show_stint_laps()
                         self.display_fuel_in_car()
                         self.display_laps_remaining(avg)
                         sleep(0.0016)  # 16ms
@@ -154,17 +155,11 @@ class Worker(QThread):
                 self.set_session_time_left()
                 sleep(0.0016)
 
-    def show_lap_switch(self):
-        if self.lap_switch > 1000:  # 125 * 16ms = 2 secs, switch every 2 secs
-            self.lap_switch = 1
-            if self.show_stint:
-                self.laps_label.emit('<font color = "red">Laps this Stint</font>')
-                self.laps.emit(str(self.current_stint))
-                self.show_stint = False
-            else:
-                self.laps_label.emit('<font color = "black">Total Laps</font>')
-                self.laps.emit(str(self.current_lap))
-                self.show_stint = True
+    def show_total_laps(self):
+        self.laps.emit(str(self.current_lap))
+
+    def show_stint_laps(self):
+        self.stint.emit(self.current_stint)
 
     def set_session_time_left(self):
         time_left = self.ir['SessionTimeRemain']
@@ -296,7 +291,7 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
         super(FuelWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.version_label.setText('v0.2')
+        self.version_label.setText('v0.3')
         self.lcd_palette = self.laps_completed_lcd.palette()
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
@@ -313,6 +308,7 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
         self.thread.laps_fuel[float].connect(self.set_fuel_laps_remaining)
         self.thread.curr_time[str].connect(self.set_time)
         self.thread.session_left[str].connect(self.set_session_time)
+        self.thread.stint[int].connect(self.show_stint)
         self.thread.start()
         self.quit_button.clicked.connect(self.quit_button_pushed)
         self.race_laps.valueChanged.connect(self.set_fuel_needed2)
@@ -321,6 +317,10 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
 #    def closeEvent(self, evnt):
 #        self.thread.terminate()
 #        self.destroy()
+
+
+    def show_stint(self, i):
+        self.stint_lcd.display(i)
 
     def start_race(self):
         self.thread.stop()

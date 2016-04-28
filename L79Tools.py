@@ -14,7 +14,7 @@ class FirstWindow(QMainWindow, firstWindow.Ui_WindowOne):
         super(FirstWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.version_label.setText('v0.3')
+        self.version_label.setText('v0.4')
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
         self.thread.race.connect(self.run_race)

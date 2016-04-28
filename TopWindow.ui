@@ -515,6 +515,42 @@
      <string/>
     </property>
    </widget>
+   <widget class="QLCDNumber" name="stint_lcd">
+    <property name="geometry">
+     <rect>
+      <x>468</x>
+      <y>222</y>
+      <width>131</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>36</pointsize>
+     </font>
+    </property>
+    <property name="intValue" stdset="0">
+     <number>0</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="laps_label_2">
+    <property name="geometry">
+     <rect>
+      <x>474</x>
+      <y>198</y>
+      <width>97</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Laps in Stint</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

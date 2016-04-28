@@ -11,4 +11,8 @@ than one session. Simply delete the file if you want to use fresh data
 (I'll add that option eventually). 
 
 Uses metric or imperial depending on the what you have chosen in 
-the sim. 
+the sim.
+
+
+v0.4 - Added button on race window which will cycle everything back to
+the main window to restart. Must be done, race window will not reset(yet?)
