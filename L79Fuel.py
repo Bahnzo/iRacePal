@@ -93,6 +93,7 @@ class Worker(QThread):
                         self.status.emit('Driver in car.')
                         self.set_time()
                         self.set_session_time_left()
+                        #self.determine_flag()
                         if self.ir['Lap'] > self.current_lap:
                             fpl = fuel_store - self.ir['FuelLevel']
                             if not self.metric:
@@ -124,7 +125,7 @@ class Worker(QThread):
                                     data = [float(line) for line in fuel_used]
                                 try:
                                     avg = sum(data) / float(len(data))
-                                except ZeroDivisionError:
+                                except (Exception, ZeroDivisionError) as e:
                                     avg = 0
                             else:
                                 lap_store = True
@@ -154,6 +155,10 @@ class Worker(QThread):
                 self.set_time()
                 self.set_session_time_left()
                 sleep(0.0016)
+
+    def determine_flag(self):
+        current_flag = self.ir['SessionFlags']
+        print(current_flag)
 
     def show_total_laps(self):
         self.laps.emit(str(self.current_lap))

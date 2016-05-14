@@ -14,7 +14,7 @@ class FirstWindow(QMainWindow, firstWindow.Ui_WindowOne):
         super(FirstWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.version_label.setText('v0.4')
+        self.version_label.setText('v0.5')
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
         self.thread.race.connect(self.run_race)
@@ -104,8 +104,17 @@ logging.basicConfig(filename='error.log', level=logging.DEBUG,
 logger=logging.getLogger(__name__)
 
 if __name__ == '__main__':
+    '''
+    while True:
+        try:
+            main()
+        except:
+            pass
+        else:
+            break
+    '''
+
     try:
         main()
     except Exception as e:
         logging.error(e)
-

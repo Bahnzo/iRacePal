@@ -50,7 +50,7 @@ class RaceWindow(QMainWindow, window_size):
 
         self.ok_button.hide()
         #self.frame.setStyleSheet('background-color:grey')
-        self.version_label.setText('v0.4')
+        self.version_label.setText('v0.5')
         self.thread = Worker()
         self.thread.name_p4[list].connect(self.display_drivers)
         self.thread.status[str].connect(self.show_status)
@@ -58,10 +58,25 @@ class RaceWindow(QMainWindow, window_size):
         self.thread.curr_time[str].connect(self.show_time)
         self.thread.laps2go[int].connect(self.show_laps_remaining)
         self.thread.laps_fuel[list].connect(self.show_fuel_laps_remaining)
-        #self.thread.ok.connect(self.race_done)
+        self.thread.fuel_2_finish[float].connect(self.show_fuel_needed_2_finish)
         self.thread.race_over.connect(self.show_ok_button)
+        self.thread.stint[int].connect(self.show_stint)
+        self.thread.fuel_2_add[float].connect(self.show_fuel_2_add)
+        self.thread.cur_fuel[float].connect(self.show_current_fuel)
         self.thread.start()
         self.ok_button.clicked.connect(self.race_done)
+
+    def show_current_fuel(self, i):
+        self.current_fuel_lcd.display(i)
+
+    def show_fuel_2_add(self, i):
+        self.fuel_2_add_lcd.display(i)
+
+    def show_stint(self, i):
+        self.laps_since_pit_lcd.display(i)
+
+    def show_fuel_needed_2_finish(self, i):
+        self.fuel_needed_lcd.display(i)
 
     def show_ok_button(self):
         self.ok_button.show()
@@ -175,6 +190,10 @@ class TrackInfo():
         self.skies = skies
         self.race_dist = race_dist
 
+# TODO: CarIdxOnPitRoad bool On pit road between the cones by car index
+# TODO: ir['CarIdxOnPitRoad'][2] shows car idx[2] on pit lane.
+# TODO: add 2 fields to the Racer() class. OnPit (shows if currently in pit) and LastPit(lap of last pit)
+
 
 class Worker(QThread):
     """
@@ -189,7 +208,10 @@ class Worker(QThread):
     laps2go = pyqtSignal(int)
     laps_fuel = pyqtSignal(list)
     race_over = pyqtSignal()
-    #ok = pyqtSignal()
+    fuel_2_finish = pyqtSignal(float)
+    stint = pyqtSignal(int)
+    fuel_2_add = pyqtSignal(float)
+    cur_fuel = pyqtSignal(float)
 
     def __init__(self):
         super().__init__()
@@ -228,12 +250,16 @@ class Worker(QThread):
         elif self.ir['SessionState'] == 3:  # parade laps
             self.status.emit('Warmup Laps')
             sleep(0.0016)
-        #elif self.ir['SessionState'] == 5 and self.ir['SessionNum'] == 2:
-        #    self.ir.shutdown()
-        #    self.race_over.emit()
         else:
             self.status.emit('Waiting for Race Session')
             sleep(1)
+
+    def determine_car_pos(self):
+        car_pos = self.ir['CarIdxTrackSurface'][self.DriverCarIdx]
+        if any([car_pos == -1, car_pos == 1, car_pos == 2]):
+            return True
+        else:
+            return False
 
     def green_flag_race(self):
         self.current_lap = self.ir['Lap']
@@ -244,6 +270,7 @@ class Worker(QThread):
         self.fuel_store = self.ir['FuelLevel']
         self.DriverCarIdx = self.ir['DriverInfo']['DriverCarIdx']  # the player/driver's carIdx
         self.is_imp()  # if car uses IMP gallons or not
+        self.current_stint = 0
         while True:
             self.status.emit('In Race')
             self.current_lap = self.ir['Lap']
@@ -251,15 +278,19 @@ class Worker(QThread):
                 break
             try:  # attempt at an error catching loop
                 self.ir.freeze_var_buffer_latest()  # freeze input so data doesn't change while doing stuff
-                if self.ir['CarIdxTrackSurface'][self.DriverCarIdx] == 1:  # car in pits
+                #if self.ir['CarIdxTrackSurface'][self.DriverCarIdx] == 1:  # car in pits
+                if self.determine_car_pos():  # if car is not found on race track
                     self.status.emit('In Race, Car in Pits')
                     self.set_time()
                     self.avg_fuel_list = []
-                    sleep(1)
-                elif self.ir['SessionState'] == 5:  # look for race over
-                #    self.ir.shutdown()
+                    self.current_stint = 0
+                    sleep(0.25)
+                elif self.ir['SessionState'] == 6:  # look for cool down
                     self.race_over.emit()
                     break
+                elif self.determine_flag() == 'checkered':
+                    self.status.emit('Checkered')
+                    sleep(0.25)
                 else:
                     if self.current_lap > 0:
                         self.loop()  # main loop for getting driver info
@@ -271,12 +302,16 @@ class Worker(QThread):
 
     def loop(self):  # main loop executed during race
         try:
+            #self.ir.freeze_var_buffer_latest()
             #self.car_positions = self.ir['CarIdxClassPosition']  # gets a list of all cars positions by class
             self.car_positions = self.ir['CarIdxPosition']  # gets a list of car positions regardless of class
             self.driver_pos = self.car_positions[self.DriverCarIdx]  # the players position
             self.get_driver_positions()
             self.session_laps_remaining()
+            self.show_cur_fuel()
             self.get_avg_fuel()
+            self.fuel_2_add_2_finish()
+            self.finish_fuel()
             if self.ir['WeatherType']:
                 self.get_weather()
             self.set_time()
@@ -284,8 +319,123 @@ class Worker(QThread):
         except Exception as e:
             logging.exception(e)
 
+    def get_avg_fuel(self):
+        if self.ir['Lap'] > self.current_lap:  # do fuel average
+            self.current_stint += 1
+            self.show_stint_laps()  # show laps since last pit stop
+            count = 0
+            fuel_hold = 0
+            fpl = self.fuel_store - self.ir['FuelLevel']
+            ''' let's not write fuel if it's under caution '''
+            if not any([self.determine_flag() == 'caution', self.determine_flag() == 'cautionWaving']):
+                self.write_lap(fpl)
+                self.avg_fuel_list.append(fpl)
+            #logging.warning('{}'.format(self.avg_fuel_list))
+            self.current_lap = self.ir['Lap']  # reset current lap fuel
+            #self.avg_fuel = mean(self.avg_fuel_list)
+            if len(self.avg_fuel_list) >= self.avgfuellaps:
+                for fuel in reversed(self.avg_fuel_list):
+                    fuel_hold += fuel
+                    count += 1
+                    if count == self.avgfuellaps:
+                        break
+                self.avg_fuel = fuel_hold / self.avgfuellaps
+                self.display_laps_remaining()
+            else:
+                self.avg_fuel = self.avg_fuel_calculation()
+                self.display_laps_remaining()
+            self.fuel_store = self.ir['FuelLevel']
+
+    def determine_pit_stop(self):
+        pass
+
+    def determine_flag(self):
+        #current_flag = self.ir['SessionFlags']
+        #if ir['SessionFlags'] & 0x00000004: # this is how to look for flags
+        if self.ir['SessionFlags'] & 0x00000001:
+            flag = 'checkered'
+        elif self.ir['SessionFlags'] & 0x00000008:
+            flag = 'yellow'
+        elif self.ir['SessionFlags'] & 0x00000100:
+            flag = 'yellowWaving'
+        elif self.ir['SessionFlags'] & 0x00000004:
+            flag = 'green'
+        elif self.ir['SessionFlags'] & 0x00004000:
+            flag = 'caution'
+        elif self.ir['SessionFlags'] & 0x00008000:
+            flag = 'cautionWaving'
+        else:
+            flag = 'green'
+        return flag
+
+    def determine_car_max_fuel(self):
+        car_max_fuel = self.ir['DriverInfo']['DriverCarFuelMaxLtr']  # cars max fuel in ltrs
+        car_max_fuel_percent = self.ir['DriverInfo']['DriverCarMaxFuelPct']  # max % of fuel allowed in car
+        if not self.metric:
+            if self.is_imp():
+                max_fuel = (car_max_fuel * 0.21997) * car_max_fuel_percent
+            else:
+                max_fuel = (car_max_fuel * 0.264) * car_max_fuel_percent
+        else:
+            max_fuel = car_max_fuel * car_max_fuel_percent
+
+        return max_fuel
+
+    def fuel_2_add_2_finish(self):
+        max_fuel_allowed = self.determine_car_max_fuel()
+        try:
+            if not self.metric:
+                if self.is_imp():
+                    cur_fuel = (self.ir['FuelLevel'] * 0.21997)  # conv imp gallons
+                    avgFuel = self.avg_fuel * 0.21997
+                else:
+                    cur_fuel = (self.ir['FuelLevel'] * 0.264)  # convert gallons
+                    avgFuel = self.avg_fuel * 0.264
+            else:
+                cur_fuel = (self.ir['FuelLevel'])
+                avgFuel = self.avg_fuel
+        except AttributeError:  # problems with avg_fuel, let's catch them.
+            avgFuel = 0
+        fuel_needed = self.laps_remaining * avgFuel
+        if cur_fuel > fuel_needed:
+            self.fuel_2_add.emit(0)
+        else:                              # actually, need to calculate fuel capacity and consider that first.
+            x = fuel_needed - cur_fuel
+            if x > max_fuel_allowed:
+                self.fuel_2_add.emit(max_fuel_allowed)
+            else:
+                self.fuel_2_add.emit(x)
+
+    def show_stint_laps(self):
+        self.stint.emit(self.current_stint)
+
+    def finish_fuel(self):
+        try:
+            if not self.metric:
+                if self.is_imp():
+                    fuel_needed = ((self.laps_remaining) * (self.avg_fuel * 0.21997))  # conv imp gallons
+                else:
+                    fuel_needed = ((self.laps_remaining) * (self.avg_fuel * 0.264))  # convert gallons
+            else:
+                fuel_needed = ((self.laps_remaining) * self.avg_fuel)
+        except (ZeroDivisionError, AttributeError):
+            fuel_needed = 0.0
+        self.fuel_2_finish.emit(round(fuel_needed, 1))
+
+    def show_cur_fuel(self):
+        fuel = self.ir['FuelLevel']
+        if not self.metric:
+            if self.is_imp():
+                self.cur_fuel.emit(self.conv_imp(fuel))
+            else:
+                self.cur_fuel.emit(self.conv_gal(fuel))
+        else:
+            self.cur_fuel.emit(fuel)
+
     def is_imp(self):
-        if self.car_type_long == 'lotus79' or 'lotus49':
+        if self.car_type_long == 'lotus79':
+            return True
+        elif self.car_type_long == 'lotus49':
             return True
         else:
             return False
@@ -462,29 +612,6 @@ class Worker(QThread):
 
     def display_drivers(self):
         self.name_p4.emit(self.racer_info)
-
-    def get_avg_fuel(self):
-        if self.ir['Lap'] > self.current_lap:  # do fuel average
-            count = 0
-            fuel_hold = 0
-            fpl = self.fuel_store - self.ir['FuelLevel']
-            self.write_lap(fpl)
-            self.avg_fuel_list.append(fpl)
-            #logging.warning('{}'.format(self.avg_fuel_list))
-            self.current_lap = self.ir['Lap']  # reset current lap fuel
-            #self.avg_fuel = mean(self.avg_fuel_list)
-            if len(self.avg_fuel_list) >= self.avgfuellaps:
-                for fuel in reversed(self.avg_fuel_list):
-                    fuel_hold += fuel
-                    count += 1
-                    if count == self.avgfuellaps:
-                        break
-                self.avg_fuel = fuel_hold / self.avgfuellaps
-                self.display_laps_remaining()
-            else:
-                self.avg_fuel = self.avg_fuel_calculation()
-                self.display_laps_remaining()
-            self.fuel_store = self.ir['FuelLevel']
 
     def get_fuel_laps_color(self, laps):
         if laps > self.laps_remaining:

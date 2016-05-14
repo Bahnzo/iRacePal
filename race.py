@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\race.ui'
+# Form implementation generated from reading ui file 'race.ui'
 #
 # Created by: PyQt5 UI code generator 5.5.1
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_RaceWindow(object):
     def setupUi(self, RaceWindow):
         RaceWindow.setObjectName("RaceWindow")
-        RaceWindow.resize(435, 377)
+        RaceWindow.resize(435, 456)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         RaceWindow.setWindowIcon(icon)
@@ -404,6 +404,49 @@ class Ui_RaceWindow(object):
         font.setPointSize(12)
         self.label_14.setFont(font)
         self.label_14.setObjectName("label_14")
+        self.laps_since_pit_lcd = QtWidgets.QLCDNumber(self.centralwidget)
+        self.laps_since_pit_lcd.setGeometry(QtCore.QRect(294, 396, 131, 51))
+        font = QtGui.QFont()
+        font.setPointSize(36)
+        self.laps_since_pit_lcd.setFont(font)
+        self.laps_since_pit_lcd.setAutoFillBackground(False)
+        self.laps_since_pit_lcd.setProperty("intValue", 0)
+        self.laps_since_pit_lcd.setObjectName("laps_since_pit_lcd")
+        self.label_15 = QtWidgets.QLabel(self.centralwidget)
+        self.label_15.setGeometry(QtCore.QRect(312, 375, 103, 16))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.label_15.setFont(font)
+        self.label_15.setObjectName("label_15")
+        self.fuel_2_add_lcd = QtWidgets.QLCDNumber(self.centralwidget)
+        self.fuel_2_add_lcd.setGeometry(QtCore.QRect(156, 396, 131, 51))
+        font = QtGui.QFont()
+        font.setPointSize(36)
+        self.fuel_2_add_lcd.setFont(font)
+        self.fuel_2_add_lcd.setAutoFillBackground(False)
+        self.fuel_2_add_lcd.setProperty("intValue", 0)
+        self.fuel_2_add_lcd.setObjectName("fuel_2_add_lcd")
+        self.label_16 = QtWidgets.QLabel(self.centralwidget)
+        self.label_16.setGeometry(QtCore.QRect(174, 375, 97, 16))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.label_16.setFont(font)
+        self.label_16.setObjectName("label_16")
+        self.current_fuel_lcd = QtWidgets.QLCDNumber(self.centralwidget)
+        self.current_fuel_lcd.setGeometry(QtCore.QRect(18, 396, 131, 51))
+        font = QtGui.QFont()
+        font.setPointSize(36)
+        self.current_fuel_lcd.setFont(font)
+        self.current_fuel_lcd.setAutoFillBackground(False)
+        self.current_fuel_lcd.setProperty("intValue", 0)
+        self.current_fuel_lcd.setObjectName("current_fuel_lcd")
+        self.label_17 = QtWidgets.QLabel(self.centralwidget)
+        self.label_17.setGeometry(QtCore.QRect(36, 375, 85, 16))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.label_17.setFont(font)
+        self.label_17.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        self.label_17.setObjectName("label_17")
         RaceWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(RaceWindow)
@@ -471,4 +514,10 @@ class Ui_RaceWindow(object):
         self.label_13.setText(_translate("RaceWindow", "Laps Until Empty"))
         self.label_11.setText(_translate("RaceWindow", "Laps Remain"))
         self.label_14.setText(_translate("RaceWindow", "Fuel to Finish"))
+        self.laps_since_pit_lcd.setToolTip(_translate("RaceWindow", "Laps Remaining in Race"))
+        self.label_15.setText(_translate("RaceWindow", "Laps Since Pit"))
+        self.fuel_2_add_lcd.setToolTip(_translate("RaceWindow", "Laps Remaining in Race"))
+        self.label_16.setText(_translate("RaceWindow", "Fuel To Add"))
+        self.current_fuel_lcd.setToolTip(_translate("RaceWindow", "Laps Remaining in Race"))
+        self.label_17.setText(_translate("RaceWindow", "Fuel in Car"))
 
