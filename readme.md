@@ -7,6 +7,7 @@ The first is simply a windows that informs you it's looking for iRacing to start
 
 Nothing really to know about this window, other than if iRacing is already started, you won't see this. Instead, 
 depending on the session, it will bring up one of the next windows.
+
 ![Top Window](http://i.imgur.com/MPRJuhJ.jpg)
 
 This is what I call the practice window. It's all about fuel. From the top left going across, here's what's what. 
@@ -30,6 +31,7 @@ doing some testing, 10% seemed like a good number, and even lower would probably
 The bottom row: Total laps is total laps done in the session, and Laps in Stint are how many laps since pit/reset. 
 The various status between them just shows where the driver is. I had them originally for testing the program and 
 left it in as it does still have some use now and then. 
+
 ![Practice Window](http://i.imgur.com/aWMuspu.jpg)
 
 Finally, the Race Window.
