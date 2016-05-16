@@ -11,7 +11,7 @@ import irsdk
 from time import sleep
 import math
 #from L79Race import RaceWindow
-import L79Tools
+import iRacePal
 import os
 import logging
 
@@ -330,7 +330,7 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
     def start_race(self):
         self.thread.stop()
         self.thread.wait()
-        self.r_window = L79Tools.FirstWindow(self)
+        self.r_window = iRacePal.FirstWindow(self)
         self.r_window.show()
         self.hide()
 

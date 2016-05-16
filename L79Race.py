@@ -29,7 +29,7 @@ from PyQt5.QtCore import *
 import sys
 import race
 import race2
-import L79Tools
+import iRacePal
 from time import sleep
 import math
 import os
@@ -84,7 +84,7 @@ class RaceWindow(QMainWindow, window_size):
     def race_done(self):
         self.thread.stop()
         self.thread.wait()
-        self.r_window = L79Tools.FirstWindow(self)
+        self.r_window = iRacePal.FirstWindow(self)
         self.r_window.show()
         self.hide()
     '''

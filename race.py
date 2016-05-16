@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'race.ui'
+# Form implementation generated from reading ui file '.\race.ui'
 #
 # Created by: PyQt5 UI code generator 5.5.1
 #
@@ -11,14 +11,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_RaceWindow(object):
     def setupUi(self, RaceWindow):
         RaceWindow.setObjectName("RaceWindow")
-        RaceWindow.resize(435, 456)
+        RaceWindow.resize(457, 456)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         RaceWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(RaceWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.position_frame = QtWidgets.QFrame(self.centralwidget)
-        self.position_frame.setGeometry(QtCore.QRect(0, 0, 433, 235))
+        self.position_frame.setGeometry(QtCore.QRect(0, 0, 457, 235))
         font = QtGui.QFont()
         font.setFamily("Segoe UI Semibold")
         font.setPointSize(12)
@@ -291,8 +291,37 @@ class Ui_RaceWindow(object):
         self.ok_button.setStyleSheet("background-color: rgb(255, 0, 0);\n"
 "border-color: rgb(0, 85, 255);")
         self.ok_button.setObjectName("ok_button")
+        self.line_13 = QtWidgets.QFrame(self.position_frame)
+        self.line_13.setGeometry(QtCore.QRect(408, 25, 13, 175))
+        self.line_13.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_13.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.line_13.setObjectName("line_13")
+        self.label_18 = QtWidgets.QLabel(self.position_frame)
+        self.label_18.setGeometry(QtCore.QRect(420, 0, 31, 25))
+        self.label_18.setObjectName("label_18")
+        self.pit_label_p1 = QtWidgets.QLabel(self.position_frame)
+        self.pit_label_p1.setGeometry(QtCore.QRect(420, 28, 25, 19))
+        self.pit_label_p1.setObjectName("pit_label_p1")
+        self.pit_label_p1_2 = QtWidgets.QLabel(self.position_frame)
+        self.pit_label_p1_2.setGeometry(QtCore.QRect(420, 53, 25, 19))
+        self.pit_label_p1_2.setObjectName("pit_label_p1_2")
+        self.pit_label_p1_3 = QtWidgets.QLabel(self.position_frame)
+        self.pit_label_p1_3.setGeometry(QtCore.QRect(420, 78, 25, 19))
+        self.pit_label_p1_3.setObjectName("pit_label_p1_3")
+        self.pit_label_p1_4 = QtWidgets.QLabel(self.position_frame)
+        self.pit_label_p1_4.setGeometry(QtCore.QRect(420, 103, 25, 19))
+        self.pit_label_p1_4.setObjectName("pit_label_p1_4")
+        self.pit_label_p1_5 = QtWidgets.QLabel(self.position_frame)
+        self.pit_label_p1_5.setGeometry(QtCore.QRect(420, 128, 25, 19))
+        self.pit_label_p1_5.setObjectName("pit_label_p1_5")
+        self.pit_label_p1_6 = QtWidgets.QLabel(self.position_frame)
+        self.pit_label_p1_6.setGeometry(QtCore.QRect(420, 153, 25, 19))
+        self.pit_label_p1_6.setObjectName("pit_label_p1_6")
+        self.pit_label_p1_7 = QtWidgets.QLabel(self.position_frame)
+        self.pit_label_p1_7.setGeometry(QtCore.QRect(420, 178, 25, 19))
+        self.pit_label_p1_7.setObjectName("pit_label_p1_7")
         self.weather_frame = QtWidgets.QFrame(self.centralwidget)
-        self.weather_frame.setGeometry(QtCore.QRect(0, 234, 433, 55))
+        self.weather_frame.setGeometry(QtCore.QRect(0, 234, 457, 55))
         font = QtGui.QFont()
         font.setFamily("Segoe UI Semibold")
         font.setPointSize(10)
@@ -346,7 +375,7 @@ class Ui_RaceWindow(object):
         self.version_label.setFont(font)
         self.version_label.setObjectName("version_label")
         self.fuel_frame = QtWidgets.QFrame(self.centralwidget)
-        self.fuel_frame.setGeometry(QtCore.QRect(0, 294, 433, 80))
+        self.fuel_frame.setGeometry(QtCore.QRect(0, 294, 457, 80))
         self.fuel_frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.fuel_frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.fuel_frame.setObjectName("fuel_frame")
@@ -454,7 +483,7 @@ class Ui_RaceWindow(object):
 
     def retranslateUi(self, RaceWindow):
         _translate = QtCore.QCoreApplication.translate
-        RaceWindow.setWindowTitle(_translate("RaceWindow", "RaceWindow"))
+        RaceWindow.setWindowTitle(_translate("RaceWindow", "iRacePal"))
         self.label.setText(_translate("RaceWindow", "POS"))
         self.pos_label_p1.setText(_translate("RaceWindow", "1"))
         self.pos_label_p2.setText(_translate("RaceWindow", "2"))
@@ -497,6 +526,15 @@ class Ui_RaceWindow(object):
         self.lap_complete_label_p7.setText(_translate("RaceWindow", "10"))
         self.time_label.setText(_translate("RaceWindow", "10:00:01 pm"))
         self.ok_button.setText(_translate("RaceWindow", "RESTART"))
+        self.label_18.setToolTip(_translate("RaceWindow", "Laps since last on pit road"))
+        self.label_18.setText(_translate("RaceWindow", "Pit"))
+        self.pit_label_p1.setText(_translate("RaceWindow", "10"))
+        self.pit_label_p1_2.setText(_translate("RaceWindow", "10"))
+        self.pit_label_p1_3.setText(_translate("RaceWindow", "10"))
+        self.pit_label_p1_4.setText(_translate("RaceWindow", "10"))
+        self.pit_label_p1_5.setText(_translate("RaceWindow", "10"))
+        self.pit_label_p1_6.setText(_translate("RaceWindow", "10"))
+        self.pit_label_p1_7.setText(_translate("RaceWindow", "10"))
         self.label_3.setText(_translate("RaceWindow", "Weather:"))
         self.w_type_label.setText(_translate("RaceWindow", "TextLabel"))
         self.label_4.setText(_translate("RaceWindow", "Wind Dir:"))

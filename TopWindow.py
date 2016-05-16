@@ -201,7 +201,7 @@ class Ui_TopWindow(object):
 
     def retranslateUi(self, TopWindow):
         _translate = QtCore.QCoreApplication.translate
-        TopWindow.setWindowTitle(_translate("TopWindow", "L79Tools"))
+        TopWindow.setWindowTitle(_translate("TopWindow", "iRacePal"))
         self.laps_label.setText(_translate("TopWindow", "Total Laps"))
         self.label_5.setText(_translate("TopWindow", "Fuel Used Last Lap"))
         self.label_6.setText(_translate("TopWindow", "Race Laps"))

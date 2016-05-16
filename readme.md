@@ -34,6 +34,8 @@ The bottom row: Total laps is total laps done in the session, and Laps in Stint 
 The various status between them just shows where the driver is. I had them originally for testing the program and 
 left it in as it does still have some use now and then. 
 
+![Race Window](http://i.imgur.com/DjtYQRd.jpg)
+
 Finally, the Race Window.
 
 This is broken into three different sections. First is the positional chart, which shows you in relation to the
@@ -63,5 +65,3 @@ Fuel in Car: How much fuel you have in the car.
 Fuel to Add: This shows you how much fuel you need to add to finish the race. It'll show 0 if you can finish, and
 it will show the total capacity of your fuel tank if the fuel needed is more than 1 tank of fuel.
 Laps Since Pit: How many laps it's been since you pitted last. 
-
-![Race Window](url goes here)
