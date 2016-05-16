@@ -1,4 +1,4 @@
-iRacing Helper v0.5
+iRacePal v0.5
 ============================================
 
 This tool consists of three different windows.
@@ -65,3 +65,9 @@ Fuel in Car: How much fuel you have in the car.
 Fuel to Add: This shows you how much fuel you need to add to finish the race. It'll show 0 if you can finish, and
 it will show the total capacity of your fuel tank if the fuel needed is more than 1 tank of fuel.
 Laps Since Pit: How many laps it's been since you pitted last. 
+
+
+Bugs, issues, etc
+==========================================================================
+There is a bug causing the program to crash, but it seems to happen very infrequently and leaves no error message. It's
+probably a bug with the PyQy interface. However, I've run full NiS races and never had a problem. 
