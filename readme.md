@@ -1,4 +1,4 @@
-iRacing Helper v0.4
+iRacing Helper v0.5
 ============================================
 
 This tool consists of three different windows.
