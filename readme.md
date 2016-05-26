@@ -70,4 +70,12 @@ Laps Since Pit: How many laps it's been since you pitted last.
 Bugs, issues, etc
 ==========================================================================
 There is a bug causing the program to crash, but it seems to happen very infrequently and leaves no error message. It's
-probably a bug with the PyQy interface. However, I've run full NiS races and never had a problem. 
+probably a bug with the PyQt interface, which I can't control. However, I've run full NiS races and never had a problem. 
+But if you do get a crash, check the installation folder for a file, "error.txt". This will record errors and write 
+them in there if the program can. Then contact me and send me the file (or just cut/paste the contents I guess). 
+
+What's planned for later?
+===========================================================================
+I've got other ideas. I might implement something that shows you when the drivers around you last pitted. I could
+easily expand the number of drivers shown. For now, this doesn't show classes, just pure positions, but that's something
+which might be added later. It also won't work in a spectator session, nor if you ghost race that session.

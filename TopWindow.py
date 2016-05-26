@@ -69,9 +69,6 @@ class Ui_TopWindow(object):
         font.setPointSize(36)
         self.fuel_needed_lcd.setFont(font)
         self.fuel_needed_lcd.setObjectName("fuel_needed_lcd")
-        self.quit_button = QtWidgets.QPushButton(self.centralwidget)
-        self.quit_button.setGeometry(QtCore.QRect(510, 280, 71, 23))
-        self.quit_button.setObjectName("quit_button")
         self.label_8 = QtWidgets.QLabel(self.centralwidget)
         self.label_8.setGeometry(QtCore.QRect(180, 240, 51, 21))
         font = QtGui.QFont()
@@ -195,6 +192,8 @@ class Ui_TopWindow(object):
         self.laps_label_2.setFont(font)
         self.laps_label_2.setObjectName("laps_label_2")
         TopWindow.setCentralWidget(self.centralwidget)
+        self.actionSettings = QtWidgets.QAction(TopWindow)
+        self.actionSettings.setObjectName("actionSettings")
 
         self.retranslateUi(TopWindow)
         QtCore.QMetaObject.connectSlotsByName(TopWindow)
@@ -206,7 +205,6 @@ class Ui_TopWindow(object):
         self.label_5.setText(_translate("TopWindow", "Fuel Used Last Lap"))
         self.label_6.setText(_translate("TopWindow", "Race Laps"))
         self.label_7.setText(_translate("TopWindow", "Fuel Needed"))
-        self.quit_button.setText(_translate("TopWindow", "Quit"))
         self.label_8.setText(_translate("TopWindow", "Status:"))
         self.groupBox.setTitle(_translate("TopWindow", "Track Weather"))
         self.label.setText(_translate("TopWindow", "Weather Type:"))
@@ -220,4 +218,5 @@ class Ui_TopWindow(object):
         self.time_label.setText(_translate("TopWindow", "TextLabel"))
         self.label_4.setText(_translate("TopWindow", "Session Remaining:"))
         self.laps_label_2.setText(_translate("TopWindow", "Laps in Stint"))
+        self.actionSettings.setText(_translate("TopWindow", "Settings"))
 

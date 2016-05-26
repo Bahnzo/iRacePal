@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtCore import *
 import sys
 import TopWindow
+import settings
 import irsdk
 from time import sleep
 import math
@@ -45,6 +46,29 @@ class Worker(QThread):
         self.terminate()
         self.ir.shutdown()
 
+    def get_settings(self):
+        filename = './settings.txt'
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, 'a+') as f:
+            f.seek(0)
+            data = f.readlines()
+        data = [line.strip('\n') for line in data]
+        f.close()
+        return data
+
+    def create_setup_folder(self):
+        data = self.get_settings()
+        if not data: # if there's no setup folder found, then ignore
+            pass
+        else:
+            driver = self.ir['DriverInfo']['DriverCarIdx']
+            setup_folder = data[0]
+            car_folder = self.ir['DriverInfo']['Drivers'][driver]['CarPath']
+            track_folder = self.ir['WeekendInfo']['TrackName']
+            new_folder = '{}/{}/{}'.format(setup_folder, car_folder, track_folder)
+            if not os.path.exists(new_folder):
+                os.makedirs(new_folder)
+
     def look_for_sim(self):
         count = 0
         while True:
@@ -54,6 +78,7 @@ class Worker(QThread):
                 self.get_weather()
                 self.set_time()
                 self.set_session_time_left()
+                self.create_setup_folder()
                 self.look_for_car()
             else:
                 self.race.emit()
@@ -68,6 +93,7 @@ class Worker(QThread):
             self.set_time()
             self.current_stint = 0
             driver = self.ir['DriverInfo']['DriverCarIdx']
+            #self.create_setup_folder()  # create a setup folder if the option is there
             if self.ir['IsOnTrack']:
                 self.determine_metric()
                 lap_store = False  # set this so we don't use the first lap from pits for fuel calc's
@@ -315,7 +341,7 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
         self.thread.session_left[str].connect(self.set_session_time)
         self.thread.stint[int].connect(self.show_stint)
         self.thread.start()
-        self.quit_button.clicked.connect(self.quit_button_pushed)
+        #self.quit_button.clicked.connect(self.quit_button_pushed)
         self.race_laps.valueChanged.connect(self.set_fuel_needed2)
         self.thread.race.connect(self.start_race)
 

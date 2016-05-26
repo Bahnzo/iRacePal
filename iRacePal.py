@@ -1,4 +1,5 @@
 import firstWindow
+import settings
 import irsdk
 import L79Fuel
 import L79Race
@@ -14,13 +15,19 @@ class FirstWindow(QMainWindow, firstWindow.Ui_WindowOne):
         super(FirstWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.version_label.setText('v0.5')
+        self.version_label.setText('v0.5a')
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
         self.thread.race.connect(self.run_race)
         self.thread.progress[int].connect(self.show_progress)
         self.thread.start()
         self.thread.practice.connect(self.run_fuel)
+        self.actionSettings.triggered.connect(self.show_settings)
+
+    def show_settings(self):
+        self.r_window = settings.setWindow(self)
+        self.r_window.show()
+
 
     def show_progress(self, i):
         if self.progressBar.value() == self.progressBar.maximum():
