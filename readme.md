@@ -1,4 +1,4 @@
-iRacePal v0.5
+iRacePal v0.5a
 ============================================
 
 This tool consists of three different windows.
@@ -79,3 +79,9 @@ What's planned for later?
 I've got other ideas. I might implement something that shows you when the drivers around you last pitted. I could
 easily expand the number of drivers shown. For now, this doesn't show classes, just pure positions, but that's something
 which might be added later. It also won't work in a spectator session, nor if you ghost race that session.
+
+Updates
+===========================================================================
+Adds option to have the program auto create a track folder inside the car's setup folder. Only does so if it doesn't 
+exist. This is done with the settings option in the first window which asks the user to select their iracing's setup 
+folder.
