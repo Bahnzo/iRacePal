@@ -15,7 +15,9 @@ class FirstWindow(QMainWindow, firstWindow.Ui_WindowOne):
         super(FirstWindow, self).__init__(parent)
         self.setupUi(self)
 
-        self.version_label.setText('v0.5a')
+        self.settings = QSettings('settings.ini', QSettings.IniFormat)  # create .ini file to save settings
+        self.settings.setFallbacksEnabled(False)  # never use registry, only .ini file
+        self.version_label.setText('v0.5b')
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
         self.thread.race.connect(self.run_race)
@@ -23,11 +25,15 @@ class FirstWindow(QMainWindow, firstWindow.Ui_WindowOne):
         self.thread.start()
         self.thread.practice.connect(self.run_fuel)
         self.actionSettings.triggered.connect(self.show_settings)
+        self.move(self.settings.value('first_pos', QPoint(50,50)))  # open window at last recorded pos, or 50,50 if none
+
+    def closeEvent(self, e):
+        self.settings.setValue('first_pos', self.pos())  # save last position of window
+        e.accept()
 
     def show_settings(self):
         self.r_window = settings.setWindow(self)
         self.r_window.show()
-
 
     def show_progress(self, i):
         if self.progressBar.value() == self.progressBar.maximum():

@@ -48,6 +48,12 @@ class RaceWindow(QMainWindow, window_size):
         super(RaceWindow, self).__init__(parent)
         self.setupUi(self)
 
+        self.settings = QSettings('settings.ini', QSettings.IniFormat)  # create .ini file to save settings
+        self.settings.setFallbacksEnabled(False)  # never use registry, only .ini file
+        if not self.settings.value('race_pos'):
+            self.move(self.settings.value('first_pos'))
+        else:
+            self.move(self.settings.value('race_pos'))
         self.ok_button.hide()
         #self.frame.setStyleSheet('background-color:grey')
         self.version_label.setText('v0.5')
@@ -65,6 +71,10 @@ class RaceWindow(QMainWindow, window_size):
         self.thread.cur_fuel[float].connect(self.show_current_fuel)
         self.thread.start()
         self.ok_button.clicked.connect(self.race_done)
+
+    def closeEvent(self, e):
+        self.settings.setValue('race_pos', self.pos())
+        e.accept()
 
     def show_current_fuel(self, i):
         self.current_fuel_lcd.display(i)
@@ -87,11 +97,7 @@ class RaceWindow(QMainWindow, window_size):
         self.r_window = iRacePal.FirstWindow(self)
         self.r_window.show()
         self.hide()
-    '''
-    def closeEvent(self, event):
-        self.thread.stop()
-        self.thread.wait()
-    '''
+
     def show_fuel_laps_remaining(self, i):
         self.laps_empty_lcd.display(i[0])
         self.laps_empty_lcd.setStyleSheet('background-color: {}'.format(i[1]))

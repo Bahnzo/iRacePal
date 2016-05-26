@@ -322,6 +322,13 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
         super(FuelWindow, self).__init__(parent)
         self.setupUi(self)
 
+        self.settings = QSettings('settings.ini', QSettings.IniFormat)  # create .ini file to save settings
+        self.settings.setFallbacksEnabled(False)  # never use registry, only .ini file
+        if not self.settings.value('fuel_pos'):
+            self.move(self.settings.value('first_pos'))
+        else:
+            self.move(self.settings.value('fuel_pos'))
+        #self.ok_button.hide()
         self.version_label.setText('v0.3')
         self.lcd_palette = self.laps_completed_lcd.palette()
         self.thread = Worker()
@@ -345,9 +352,9 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
         self.race_laps.valueChanged.connect(self.set_fuel_needed2)
         self.thread.race.connect(self.start_race)
 
-#    def closeEvent(self, evnt):
-#        self.thread.terminate()
-#        self.destroy()
+    def closeEvent(self, e):
+        self.settings.setValue('fuel_pos', self.pos())
+        e.accept()
 
 
     def show_stint(self, i):

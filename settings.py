@@ -11,27 +11,34 @@ class setWindow(QMainWindow, settingsWindow.Ui_settingsDialog):
     def __init__(self, parent=None):
         super(setWindow, self).__init__(parent)
         self.setupUi(self)
-        data = self.look_for_settings_file()
-        if not data:
+        self.settings = QSettings('./settings.ini', QSettings.IniFormat)
+        self.settings.setFallbacksEnabled(False)
+        folder = self.settings.value('setupsFolder')
+        if not folder:
             self.setup_checkBox.setChecked(False)
+            self.setup_folder_label.setText('None')
         else:
             self.setup_checkBox.setChecked(True)
-            self.setup_folder_label.setText(data[0])
+            self.setup_folder_label.setText(folder)
         self.setup_checkBox.stateChanged.connect(self.do_checkbox)
         self.ok_button.clicked.connect(self.okButtonClicked)
 
     def okButtonClicked(self):
         if not self.setup_checkBox.isChecked():  # erase settings.txt
-            filename = './settings.txt'
-            os.remove(filename)
+            self.settings.setValue('setupsFolder', None)
         self.hide()
         self.close()
 
     def do_checkbox(self):
         if self.setup_checkBox.isChecked():
             folder = str(QFileDialog.getExistingDirectory(self, 'Select Directory'))
+            self.settings.setValue('setupsFolder', folder)
+            self.setup_folder_label.setText(folder)
+            '''
+            folder = str(QFileDialog.getExistingDirectory(self, 'Select Directory'))
             self.setup_folder_label.setText(folder)
             self.write_to_file(folder)
+            '''
 
     def look_for_settings_file(self):
         filename = './settings.txt'

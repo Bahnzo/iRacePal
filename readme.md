@@ -85,3 +85,5 @@ Updates
 v0.5a - Adds option to have the program auto create a track folder inside the car's setup folder. Only does so if it doesn't 
 exist. This is done with the settings option in the first window which asks the user to select their iracing's setup 
 folder.
+v0.5b - Added code that remembers the window's last position and then will open it next time in that position. Also
+added code that improves the way settings are stored and retrieved, along with using a settings.ini file instead.
