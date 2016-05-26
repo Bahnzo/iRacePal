@@ -82,6 +82,6 @@ which might be added later. It also won't work in a spectator session, nor if yo
 
 Updates
 ===========================================================================
-Adds option to have the program auto create a track folder inside the car's setup folder. Only does so if it doesn't 
+v0.5a - Adds option to have the program auto create a track folder inside the car's setup folder. Only does so if it doesn't 
 exist. This is done with the settings option in the first window which asks the user to select their iracing's setup 
 folder.
