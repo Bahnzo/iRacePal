@@ -46,26 +46,17 @@ class Worker(QThread):
         self.terminate()
         self.ir.shutdown()
 
-    def get_settings(self):
-        filename = './settings.txt'
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, 'a+') as f:
-            f.seek(0)
-            data = f.readlines()
-        data = [line.strip('\n') for line in data]
-        f.close()
-        return data
-
     def create_setup_folder(self):
-        data = self.get_settings()
-        if not data: # if there's no setup folder found, then ignore
+        self.settings = QSettings('settings.ini', QSettings.IniFormat)  # create .ini file to save settings
+        self.settings.setFallbacksEnabled(False)  # never use registry, only .ini file
+        data = self.settings.value('setupsFolder')
+        if not data:  # if there's no setup folder found, then ignore
             pass
         else:
             driver = self.ir['DriverInfo']['DriverCarIdx']
-            setup_folder = data[0]
             car_folder = self.ir['DriverInfo']['Drivers'][driver]['CarPath']
             track_folder = self.ir['WeekendInfo']['TrackName']
-            new_folder = '{}/{}/{}'.format(setup_folder, car_folder, track_folder)
+            new_folder = '{}/{}/{}'.format(data, car_folder, track_folder)
             if not os.path.exists(new_folder):
                 os.makedirs(new_folder)
 
