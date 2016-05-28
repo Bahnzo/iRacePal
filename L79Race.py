@@ -248,6 +248,7 @@ class Worker(QThread):
             else:
                 self.status.emit('Looking For iRacing')
                 self.set_time()
+                self.race_over.emit()
                 sleep(1)
 
     def determine_session(self):
@@ -300,7 +301,8 @@ class Worker(QThread):
                 else:
                     if self.current_lap > 0:
                         self.loop()  # main loop for getting driver info
-                        sleep(0.0016)  # 16ms
+                        #sleep(0.0016)  # 16ms
+                        sleep(0.25)
             except Exception as e:
                     logging.exception(e)
 

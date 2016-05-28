@@ -88,3 +88,4 @@ folder.
 v0.5b - Added code that remembers the window's last position and then will open it next time in that position. Also
 added code that improves the way settings are stored and retrieved, along with using a settings.ini file instead.
 v0.5c - Fixed bug with creating setups folder
+v0.5d - Added better code for handling yellows/pits/race over. 
