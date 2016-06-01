@@ -291,6 +291,8 @@ class Worker(QThread):
                     self.set_time()
                     self.avg_fuel_list = []
                     self.current_stint = 0
+                    if self.determine_flag() == 'checkered':
+                        self.race_over.emit()
                     sleep(0.25)
                 elif self.ir['SessionState'] == 6:  # look for cool down
                     self.race_over.emit()

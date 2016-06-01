@@ -1,4 +1,4 @@
-iRacePal v0.5a
+iRacePal v0.5d
 ============================================
 
 This tool consists of three different windows.
@@ -85,7 +85,11 @@ Updates
 v0.5a - Adds option to have the program auto create a track folder inside the car's setup folder. Only does so if it doesn't 
 exist. This is done with the settings option in the first window which asks the user to select their iracing's setup 
 folder.
+
 v0.5b - Added code that remembers the window's last position and then will open it next time in that position. Also
 added code that improves the way settings are stored and retrieved, along with using a settings.ini file instead.
+
 v0.5c - Fixed bug with creating setups folder
-v0.5d - Added better code for handling yellows/pits/race over. 
+
+v0.5d - Added better code for handling yellows/pits/race over. Decreased updating from 16ms to 250ms. Will add this
+as an option in the future. But 4 times a second should be enough during a race.
