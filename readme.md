@@ -1,16 +1,16 @@
-iRacePal v0.5d
+iRacePal v0.5e
 ============================================
 
 This tool consists of three different windows.
 
-![Top Window](http://i.imgur.com/MPRJuhJ.jpg)
+![Top Window](http://s20.postimg.org/5x433gixp/L79_Start.jpg)
 
 The first is simply a windows that informs you it's looking for iRacing to start.
 
 Nothing really to know about this window, other than if iRacing is already started, you won't see this. Instead, 
 depending on the session, it will bring up one of the next windows.
 
-![Practice Window](http://i.imgur.com/aWMuspu.jpg)
+![Practice Window](http://s20.postimg.org/ppm3n5kv1/L79_Fuel.jpg)
 
 This is what I call the practice window. It's all about fuel. From the top left going across, here's what's what. 
 First is weather, and as it changes in the session, you'll see this here. 
@@ -69,9 +69,8 @@ Laps Since Pit: How many laps it's been since you pitted last.
 
 Bugs, issues, etc
 ==========================================================================
-There is a bug causing the program to crash, but it seems to happen very infrequently and leaves no error message. It's
-probably a bug with the PyQt interface, which I can't control. However, I've run full NiS races and never had a problem. 
-But if you do get a crash, check the installation folder for a file, "error.txt". This will record errors and write 
+Right now, the program is pretty stable. 
+If you do get a crash, check the installation folder for a file, "error.txt". This will record errors and write 
 them in there if the program can. Then contact me and send me the file (or just cut/paste the contents I guess). 
 
 What's planned for later?
