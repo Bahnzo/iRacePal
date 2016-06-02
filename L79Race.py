@@ -248,7 +248,7 @@ class Worker(QThread):
             else:
                 self.status.emit('Looking For iRacing')
                 self.set_time()
-                self.race_over.emit()
+                #self.race_over.emit()
                 sleep(1)
 
     def determine_session(self):

@@ -93,3 +93,5 @@ v0.5c - Fixed bug with creating setups folder
 
 v0.5d - Added better code for handling yellows/pits/race over. Decreased updating from 16ms to 250ms. Will add this
 as an option in the future. But 4 times a second should be enough during a race.
+
+v0.5e - Fixed bug with program hanging when looking for iRacing. 
