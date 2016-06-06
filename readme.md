@@ -12,8 +12,13 @@ depending on the session, it will bring up one of the next windows.
 
 ![Practice Window](http://s20.postimg.org/ppm3n5kv1/L79_Fuel.jpg)
 
-This is what I call the practice window. It's all about fuel. From the top left going across, here's what's what. 
-First is weather, and as it changes in the session, you'll see this here. 
+This window now has a "Settings" dropdown. If iRacing is already started, you won't see this. Instead, 
+depending on the session, it will bring up one of the next windows.
+
+![Settings Window](http://s20.postimg.org/ne9qjmfx9/L79_Settings.jpg)
+
+The Settings window. This is were you can tell the program to automatically create a track folder inside the folder for 
+the car you are testing. Also allows you to set the rate at which the program updates. Min = 25ms, Max = 1000ms. 
 
 Next two are the race fuel boxes. As you run laps and accumulate average fuel usage, you can set this box to show
 how much fuel you'll need for a race. Simply input the laps, either with the arrows or just putting the cursor in 
