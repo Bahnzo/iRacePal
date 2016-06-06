@@ -165,7 +165,7 @@
     <property name="geometry">
      <rect>
       <x>180</x>
-      <y>240</y>
+      <y>282</y>
       <width>51</width>
       <height>21</height>
      </rect>
@@ -183,7 +183,7 @@
     <property name="geometry">
      <rect>
       <x>240</x>
-      <y>240</y>
+      <y>282</y>
       <width>331</width>
       <height>21</height>
      </rect>
@@ -203,7 +203,7 @@
       <x>0</x>
       <y>0</y>
       <width>241</width>
-      <height>111</height>
+      <height>121</height>
      </rect>
     </property>
     <property name="title">
@@ -226,7 +226,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>40</y>
+       <y>60</y>
        <width>81</width>
        <height>16</height>
       </rect>
@@ -239,7 +239,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>60</y>
+       <y>78</y>
        <width>61</width>
        <height>16</height>
       </rect>
@@ -252,7 +252,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>80</y>
+       <y>96</y>
        <width>61</width>
        <height>16</height>
       </rect>
@@ -278,7 +278,7 @@
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>40</y>
+       <y>60</y>
        <width>61</width>
        <height>16</height>
       </rect>
@@ -291,7 +291,7 @@
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>60</y>
+       <y>78</y>
        <width>71</width>
        <height>16</height>
       </rect>
@@ -304,7 +304,33 @@
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>80</y>
+       <y>96</y>
+       <width>61</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_13">
+     <property name="geometry">
+      <rect>
+       <x>12</x>
+       <y>42</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Air Temp</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="air_temp_label">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>42</y>
        <width>61</width>
        <height>16</height>
       </rect>
@@ -536,6 +562,45 @@
     </property>
     <property name="text">
      <string>Laps in Stint</string>
+    </property>
+   </widget>
+   <widget class="QLCDNumber" name="water_temp_lcd">
+    <property name="geometry">
+     <rect>
+      <x>336</x>
+      <y>222</y>
+      <width>85</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>36</pointsize>
+     </font>
+    </property>
+    <property name="digitCount">
+     <number>3</number>
+    </property>
+    <property name="intValue" stdset="0">
+     <number>0</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="laps_label_3">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>198</y>
+      <width>97</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Water Temp</string>
     </property>
    </widget>
   </widget>

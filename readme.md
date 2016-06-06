@@ -1,4 +1,4 @@
-iRacePal v0.5e
+iRacePal v0.6
 ============================================
 
 This tool consists of three different windows.
@@ -94,3 +94,6 @@ v0.5d - Added better code for handling yellows/pits/race over. Decreased updatin
 as an option in the future. But 4 times a second should be enough during a race.
 
 v0.5e - Fixed bug with program hanging when looking for iRacing. 
+
+v0.6 - Added water temps to Practice and Race screens. Added Air temperature to Practice and Race. Added an option to
+set how often the program updates during the race, found in settings. Defaults to 250ms (4 times a second). 

@@ -20,8 +20,18 @@ class setWindow(QMainWindow, settingsWindow.Ui_settingsDialog):
         else:
             self.setup_checkBox.setChecked(True)
             self.setup_folder_label.setText(folder)
+        update_rate = self.settings.value('update_ms')
+        if not update_rate:
+            self.update_box.setValue(250)
+            self.settings.setValue('update_ms', 250)
+        else:
+            self.update_box.setValue(int(update_rate))
         self.setup_checkBox.stateChanged.connect(self.do_checkbox)
         self.ok_button.clicked.connect(self.okButtonClicked)
+        self.update_box.valueChanged.connect(self.update_box_changed)
+
+    def update_box_changed(self):
+        self.settings.setValue('update_ms', self.update_box.value())
 
     def okButtonClicked(self):
         if not self.setup_checkBox.isChecked():  # erase settings.txt

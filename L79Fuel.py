@@ -18,6 +18,17 @@ import logging
 
 fuel_used = []  # global for fuel used
 
+class TrackInfo():
+    """
+    Holds info about the weather.
+    """
+    def __init__(self, air_temp, track_temp, wind_dir, wind_vel, w_type):
+        self.air_temp = air_temp
+        self.track_temp = track_temp
+        self.wind_dir = wind_dir
+        self.wind_vel = wind_vel
+        self.w_type = w_type
+
 class Worker(QThread):
     status = pyqtSignal(str)
     laps = pyqtSignal(str)
@@ -34,6 +45,8 @@ class Worker(QThread):
     laps_label = pyqtSignal(str)
     race = pyqtSignal()
     stint = pyqtSignal(int)
+    weather = pyqtSignal(object)
+    water_temp = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
@@ -59,6 +72,8 @@ class Worker(QThread):
             new_folder = '{}/{}/{}'.format(data, car_folder, track_folder)
             if not os.path.exists(new_folder):
                 os.makedirs(new_folder)
+
+
 
     def look_for_sim(self):
         count = 0
@@ -100,6 +115,7 @@ class Worker(QThread):
                 self.car_type = self.ir['DriverInfo']['Drivers'][driver]['CarPath']
                 avg = self.avg_fuel_calculation()
                 self.set_session_time_left()
+                self.get_water_temp()
                 while True:
                     x = self.ir['CarIdxTrackSurface'][driver]
                     if x == 1:  # if car is in pits, then reset also
@@ -149,6 +165,7 @@ class Worker(QThread):
                             fuel_store = self.ir['FuelLevel']
                         if self.ir['WeatherType']:
                             self.get_weather()
+                        self.get_water_temp()
                         #self.show_total_laps()  # changes between total laps, and laps completed since leaving pits
                         self.show_stint_laps()
                         self.display_fuel_in_car()
@@ -176,6 +193,13 @@ class Worker(QThread):
     def determine_flag(self):
         current_flag = self.ir['SessionFlags']
         print(current_flag)
+
+    def get_water_temp(self):
+        if not self.metric:
+            w_temp = round((self.ir['WaterTemp'] * 9 /5) + 32)
+        else:
+            w_temp = round(self.ir['WaterTemp'])
+        self.water_temp.emit(w_temp)
 
     def show_total_laps(self):
         self.laps.emit(str(self.current_lap))
@@ -275,21 +299,26 @@ class Worker(QThread):
     def get_weather(self):
         w_type = self.ir['WeatherType']  # 0=constant, 1=dynamic
         if not self.metric:
+            a_temp = str(round((self.ir['AirTemp'] * 9 / 5) + 32))
             t_temp = round((self.ir['TrackTempCrew'] * 9 / 5) + 32)
+            track_temp = '{}{}'.format(str(t_temp), 'F')
         else:
+            a_temp = str(round(self.ir['AirTemp']))
             t_temp = round(self.ir['TrackTempCrew'])
-        self.track_temp.emit(str(t_temp))
+            track_temp = '{}{}'.format(str(t_temp), 'C')
         degrees = round(math.degrees(self.ir['WindDir']))
-        wind_txt = self.winddir_text(degrees)
-        self.wind_dir.emit(wind_txt)
+        wind_txt = self.winddir_text(float(degrees))
+        wind_dir = wind_txt
         if not self.metric:
-            self.wind_vel.emit(str(round(self.ir['WindVel'] / 0.44704)))
+            wind_vel = str(round(self.ir['WindVel'] / 0.44704))
         else:
-            self.wind_vel.emit(str(round(self.ir['WindVel'])))
+            wind_vel = str(round(self.ir['WindVel']))
         if w_type:
-            self.weather_type.emit('Dynamic')
+            w_type = 'Dynamic'
         else:
-            self.weather_type.emit('Constant')
+            w_type = 'Constant'
+        w = TrackInfo(a_temp, track_temp, wind_dir, wind_vel, w_type)
+        self.weather.emit(w)
 
     def winddir_text(self, pts):
         "Convert wind direction from 0..15 to compass point text"
@@ -320,7 +349,7 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
         else:
             self.move(self.settings.value('fuel_pos'))
         #self.ok_button.hide()
-        self.version_label.setText('v0.3')
+        self.version_label.setText('v0.6')
         self.lcd_palette = self.laps_completed_lcd.palette()
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
@@ -338,6 +367,8 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
         self.thread.curr_time[str].connect(self.set_time)
         self.thread.session_left[str].connect(self.set_session_time)
         self.thread.stint[int].connect(self.show_stint)
+        self.thread.weather[object].connect(self.show_weather)
+        self.thread.water_temp[int].connect(self.show_water_temp)
         self.thread.start()
         #self.quit_button.clicked.connect(self.quit_button_pushed)
         self.race_laps.valueChanged.connect(self.set_fuel_needed2)
@@ -347,6 +378,15 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
         self.settings.setValue('fuel_pos', self.pos())
         e.accept()
 
+    def show_water_temp(self, i):
+        self.water_temp_lcd.display(i)
+
+    def show_weather(self, i):
+        self.air_temp_label.setText(i.air_temp)
+        self.track_temp_label.setText(i.track_temp)
+        self.weather_type_label.setText(i.w_type)
+        self.wind_dir_label.setText(i.wind_dir)
+        self.wind_vel_label.setText(i.wind_vel)
 
     def show_stint(self, i):
         self.stint_lcd.display(i)

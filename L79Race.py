@@ -50,10 +50,7 @@ class RaceWindow(QMainWindow, window_size):
 
         self.settings = QSettings('settings.ini', QSettings.IniFormat)  # create .ini file to save settings
         self.settings.setFallbacksEnabled(False)  # never use registry, only .ini file
-        if not self.settings.value('race_pos'):
-            self.move(self.settings.value('first_pos'))
-        else:
-            self.move(self.settings.value('race_pos'))
+        self.get_settings_values()
         self.ok_button.hide()
         #self.frame.setStyleSheet('background-color:grey')
         self.version_label.setText('v0.5')
@@ -69,12 +66,22 @@ class RaceWindow(QMainWindow, window_size):
         self.thread.stint[int].connect(self.show_stint)
         self.thread.fuel_2_add[float].connect(self.show_fuel_2_add)
         self.thread.cur_fuel[float].connect(self.show_current_fuel)
+        self.thread.water_temp[int].connect(self.show_water_temp)
         self.thread.start()
         self.ok_button.clicked.connect(self.race_done)
 
     def closeEvent(self, e):
         self.settings.setValue('race_pos', self.pos())
         e.accept()
+
+    def get_settings_values(self): # get values from settings.ini
+        if not self.settings.value('race_pos'):
+            self.move(self.settings.value('first_pos'))
+        else:
+            self.move(self.settings.value('race_pos'))
+
+    def show_water_temp(self, i):
+        self.water_temp_lcd.display(i)
 
     def show_current_fuel(self, i):
         self.current_fuel_lcd.display(i)
@@ -114,7 +121,8 @@ class RaceWindow(QMainWindow, window_size):
         self.w_speed_label.setText(i.wind_vel)
         self.w_temp_label.setText(i.track_temp)
         self.sky_type_label.setText(i.skies)
-        self.race_dist_label.setText(i.race_dist)
+        #self.race_dist_label.setText(i.race_dist)
+        self.air_temp_label.setText(i.air_temp)
 
     def quit_button_pushed(self):
         self.thread.terminate()
@@ -188,13 +196,14 @@ class TrackInfo():
     """
     Holds info about the weather.
     """
-    def __init__(self, track_temp, wind_dir, wind_vel, w_type, skies, race_dist):
+    def __init__(self, air_temp, track_temp, wind_dir, wind_vel, w_type, skies):
+        self.air_temp = air_temp
         self.track_temp = track_temp
         self.wind_dir = wind_dir
         self.wind_vel = wind_vel
         self.w_type = w_type
         self.skies = skies
-        self.race_dist = race_dist
+        #self.race_dist = race_dist
 
 # TODO: CarIdxOnPitRoad bool On pit road between the cones by car index
 # TODO: ir['CarIdxOnPitRoad'][2] shows car idx[2] on pit lane.
@@ -218,6 +227,7 @@ class Worker(QThread):
     stint = pyqtSignal(int)
     fuel_2_add = pyqtSignal(float)
     cur_fuel = pyqtSignal(float)
+    water_temp = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
@@ -226,6 +236,8 @@ class Worker(QThread):
         self.racer_info = []  # a list of the Racer() class which contains the driver info
         self.avg_fuel_list = []  # list of drivers avg fuel use
         self.avgfuellaps = 5  # num of laps to average fuel over
+        self.settings = QSettings('settings.ini', QSettings.IniFormat)  # create .ini file to save settings
+        self.settings.setFallbacksEnabled(False)  # never use registry, only .ini file
 
     def __del__(self):
         self.wait()
@@ -237,13 +249,20 @@ class Worker(QThread):
         self.terminate()
         self.ir.shutdown()
 
+    def get_settings_value(self):
+        if not self.settings.value('update_ms'):
+            self.update_value = 250
+        else:
+            self.update_value = self.settings.value('update_ms')
+
     def find_sim(self):
         while True:
             if self.ir.startup():
                 self.get_race_details()
                 self.get_weather()
                 self.set_time()
-                #self.status.emit('iRacing Found - Waiting for Session')
+                self.status.emit('iRacing Found - Waiting for Session')
+                self.get_settings_value()
                 self.determine_session()  # discover session type
             else:
                 self.status.emit('Looking For iRacing')
@@ -293,7 +312,7 @@ class Worker(QThread):
                     self.current_stint = 0
                     if self.determine_flag() == 'checkered':
                         self.race_over.emit()
-                    sleep(0.25)
+                    sleep(self.update_value)
                 elif self.ir['SessionState'] == 6:  # look for cool down
                     self.race_over.emit()
                     break
@@ -304,7 +323,7 @@ class Worker(QThread):
                     if self.current_lap > 0:
                         self.loop()  # main loop for getting driver info
                         #sleep(0.0016)  # 16ms
-                        sleep(0.25)
+                        sleep(self.update_value)
             except Exception as e:
                     logging.exception(e)
 
@@ -325,6 +344,7 @@ class Worker(QThread):
             if self.ir['WeatherType']:
                 self.get_weather()
             self.set_time()
+            self.get_water_temp()
             self.display_drivers()
         except Exception as e:
             logging.exception(e)
@@ -355,6 +375,13 @@ class Worker(QThread):
                 self.avg_fuel = self.avg_fuel_calculation()
                 self.display_laps_remaining()
             self.fuel_store = self.ir['FuelLevel']
+
+    def get_water_temp(self):
+        if not self.metric:
+            w_temp = round((self.ir['WaterTemp'] * 9 /5) + 32)
+        else:
+            w_temp = round(self.ir['WaterTemp'])
+        self.water_temp.emit(w_temp)
 
     def determine_pit_stop(self):
         pass
@@ -515,9 +542,11 @@ class Worker(QThread):
     def get_weather(self):
         w_type = self.ir['WeatherType']  # 0=constant, 1=dynamic
         if not self.metric:
+            a_temp = str(round((self.ir['AirTemp'] * 9 / 5) + 32))
             t_temp = round((self.ir['TrackTempCrew'] * 9 / 5) + 32)
             track_temp = '{}{}'.format(str(t_temp), 'F')
         else:
+            a_temp = str(round(self.ir['AirTemp']))
             t_temp = round(self.ir['TrackTempCrew'])
             track_temp = '{}{}'.format(str(t_temp), 'C')
         degrees = round(math.degrees(self.ir['WindDir']))
@@ -531,7 +560,7 @@ class Worker(QThread):
             w_type = 'Dynamic'
         else:
             w_type = 'Constant'
-        w = TrackInfo(track_temp, wind_dir, wind_vel, w_type, self.sky_cond, self.race_laps)
+        w = TrackInfo(a_temp, track_temp, wind_dir, wind_vel, w_type, self.sky_cond)
         self.weather.emit(w)
 
     def winddir_text(self, pts):

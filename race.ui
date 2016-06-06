@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>457</width>
+    <width>462</width>
     <height>456</height>
    </rect>
   </property>
@@ -1172,10 +1172,10 @@ border-color: rgb(0, 85, 255);</string>
       </rect>
      </property>
      <property name="text">
-      <string>Race Dist:</string>
+      <string>Air Temp:</string>
      </property>
     </widget>
-    <widget class="QLabel" name="race_dist_label">
+    <widget class="QLabel" name="air_temp_label">
      <property name="geometry">
       <rect>
        <x>324</x>
@@ -1251,9 +1251,9 @@ border-color: rgb(0, 85, 255);</string>
     <widget class="QLCDNumber" name="laps_left_lcd">
      <property name="geometry">
       <rect>
-       <x>294</x>
+       <x>282</x>
        <y>24</y>
-       <width>131</width>
+       <width>85</width>
        <height>51</height>
       </rect>
      </property>
@@ -1268,6 +1268,9 @@ border-color: rgb(0, 85, 255);</string>
      <property name="autoFillBackground">
       <bool>false</bool>
      </property>
+     <property name="digitCount">
+      <number>3</number>
+     </property>
      <property name="intValue" stdset="0">
       <number>0</number>
      </property>
@@ -1275,7 +1278,7 @@ border-color: rgb(0, 85, 255);</string>
     <widget class="QLabel" name="label_13">
      <property name="geometry">
       <rect>
-       <x>162</x>
+       <x>144</x>
        <y>0</y>
        <width>131</width>
        <height>20</height>
@@ -1293,7 +1296,7 @@ border-color: rgb(0, 85, 255);</string>
     <widget class="QLCDNumber" name="laps_empty_lcd">
      <property name="geometry">
       <rect>
-       <x>156</x>
+       <x>144</x>
        <y>24</y>
        <width>131</width>
        <height>51</height>
@@ -1357,9 +1360,9 @@ border-color: rgb(0, 85, 255);</string>
     <widget class="QLabel" name="label_11">
      <property name="geometry">
       <rect>
-       <x>318</x>
+       <x>282</x>
        <y>0</y>
-       <width>97</width>
+       <width>91</width>
        <height>16</height>
       </rect>
      </property>
@@ -1375,7 +1378,7 @@ border-color: rgb(0, 85, 255);</string>
     <widget class="QLCDNumber" name="fuel_needed_lcd">
      <property name="geometry">
       <rect>
-       <x>18</x>
+       <x>6</x>
        <y>24</y>
        <width>131</width>
        <height>51</height>
@@ -1393,7 +1396,7 @@ border-color: rgb(0, 85, 255);</string>
     <widget class="QLabel" name="label_14">
      <property name="geometry">
       <rect>
-       <x>36</x>
+       <x>24</x>
        <y>0</y>
        <width>101</width>
        <height>16</height>
@@ -1408,13 +1411,31 @@ border-color: rgb(0, 85, 255);</string>
       <string>Fuel to Finish</string>
      </property>
     </widget>
+    <widget class="QLabel" name="laps_label_3">
+     <property name="geometry">
+      <rect>
+       <x>378</x>
+       <y>0</y>
+       <width>91</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Water Tmp</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QLCDNumber" name="laps_since_pit_lcd">
     <property name="geometry">
      <rect>
-      <x>294</x>
+      <x>282</x>
       <y>396</y>
-      <width>131</width>
+      <width>85</width>
       <height>51</height>
      </rect>
     </property>
@@ -1429,6 +1450,9 @@ border-color: rgb(0, 85, 255);</string>
     <property name="autoFillBackground">
      <bool>false</bool>
     </property>
+    <property name="digitCount">
+     <number>3</number>
+    </property>
     <property name="intValue" stdset="0">
      <number>0</number>
     </property>
@@ -1436,7 +1460,7 @@ border-color: rgb(0, 85, 255);</string>
    <widget class="QLabel" name="label_15">
     <property name="geometry">
      <rect>
-      <x>312</x>
+      <x>276</x>
       <y>375</y>
       <width>103</width>
       <height>16</height>
@@ -1454,7 +1478,7 @@ border-color: rgb(0, 85, 255);</string>
    <widget class="QLCDNumber" name="fuel_2_add_lcd">
     <property name="geometry">
      <rect>
-      <x>156</x>
+      <x>144</x>
       <y>396</y>
       <width>131</width>
       <height>51</height>
@@ -1496,7 +1520,7 @@ border-color: rgb(0, 85, 255);</string>
    <widget class="QLCDNumber" name="current_fuel_lcd">
     <property name="geometry">
      <rect>
-      <x>18</x>
+      <x>6</x>
       <y>396</y>
       <width>131</width>
       <height>51</height>
@@ -1520,7 +1544,7 @@ border-color: rgb(0, 85, 255);</string>
    <widget class="QLabel" name="label_17">
     <property name="geometry">
      <rect>
-      <x>36</x>
+      <x>24</x>
       <y>375</y>
       <width>85</width>
       <height>16</height>
@@ -1536,6 +1560,27 @@ border-color: rgb(0, 85, 255);</string>
     </property>
     <property name="text">
      <string>Fuel in Car</string>
+    </property>
+   </widget>
+   <widget class="QLCDNumber" name="water_temp_lcd">
+    <property name="geometry">
+     <rect>
+      <x>372</x>
+      <y>318</y>
+      <width>85</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>36</pointsize>
+     </font>
+    </property>
+    <property name="digitCount">
+     <number>3</number>
+    </property>
+    <property name="intValue" stdset="0">
+     <number>0</number>
     </property>
    </widget>
   </widget>
