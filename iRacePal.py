@@ -17,7 +17,8 @@ class FirstWindow(QMainWindow, firstWindow.Ui_WindowOne):
 
         self.settings = QSettings('settings.ini', QSettings.IniFormat)  # create .ini file to save settings
         self.settings.setFallbacksEnabled(False)  # never use registry, only .ini file
-        self.version_label.setText('v0.6')
+        self.version_label.setText('v0.6.1')
+        self.get_settings_value()
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
         self.thread.race.connect(self.run_race)
@@ -30,6 +31,10 @@ class FirstWindow(QMainWindow, firstWindow.Ui_WindowOne):
     def closeEvent(self, e):
         self.settings.setValue('first_pos', self.pos())  # save last position of window
         e.accept()
+
+    def get_settings_value(self):
+        if not self.settings.value('update_ms'):
+            self.settings.setValue('update_ms', 250)
 
     def show_settings(self):
         self.r_window = settings.setWindow(self)

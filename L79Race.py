@@ -252,6 +252,7 @@ class Worker(QThread):
     def get_settings_value(self):
         if not self.settings.value('update_ms'):
             self.update_value = 250
+            self.settings.setValue('update_ms', 250)
         else:
             self.update_value = self.settings.value('update_ms')
 
