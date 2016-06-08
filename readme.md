@@ -1,4 +1,4 @@
-iRacePal v0.6
+iRacePal v0.6.1
 ============================================
 
 This tool consists of three different windows.
@@ -102,3 +102,5 @@ v0.5e - Fixed bug with program hanging when looking for iRacing.
 
 v0.6 - Added water temps to Practice and Race screens. Added Air temperature to Practice and Race. Added an option to
 set how often the program updates during the race, found in settings. Defaults to 250ms (4 times a second). 
+
+v0.6.1 - Fixed issue with program hanging when switching to Race....duh
