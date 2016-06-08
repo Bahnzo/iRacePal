@@ -272,7 +272,7 @@ class Worker(QThread):
                 sleep(1)
 
     def determine_session(self):
-        if self.ir['SessionState'] == 4 and self.ir['SessionNum'] == 2:  # 4 = racing 2 = race session
+        if self.ir['SessionState'] == 4 and self.ir['SessionNum'] == 1:  # 4 = racing 2 = race session
             self.green_flag_race()
         elif self.ir['SessionState'] == 3:  # parade laps
             self.status.emit('Warmup Laps')
@@ -313,7 +313,8 @@ class Worker(QThread):
                     self.current_stint = 0
                     if self.determine_flag() == 'checkered':
                         self.race_over.emit()
-                    sleep(self.update_value)
+                    self.loop()  # <<<<-------------------try this to keep getting info in pit?
+                    sleep(float(self.update_value))
                 elif self.ir['SessionState'] == 6:  # look for cool down
                     self.race_over.emit()
                     break
@@ -524,7 +525,7 @@ class Worker(QThread):
         self.track_weather = self.ir['WeekendInfo']['TrackWeatherType']  # constant or dynamic
         self.metric = self.ir['DisplayUnits']  # what measurement units is the player using
         if self.ir['WeekendInfo']['EventType'] == 'Race':
-            self.race_laps = str(self.ir['SessionInfo']['Sessions'][2]['SessionLaps'])
+            self.race_laps = str(self.ir['SessionInfo']['Sessions'][1]['SessionLaps'])
         else:
             self.race_laps = 'Practice'
         self.sky_cond = self.get_sky_condition(self.ir['WeekendInfo']['WeekendOptions']['Skies'])
@@ -608,7 +609,7 @@ class Worker(QThread):
 
     def get_driver_positions(self):  # this is main function for getting drivers needed for positions
         try:
-            total_drivers = len(self.ir['SessionInfo']['Sessions'][2]['ResultsPositions'])
+            total_drivers = len(self.ir['SessionInfo']['Sessions'][1]['ResultsPositions'])
             if self.driver_pos == total_drivers:  # player is in last place
                 count = self.driver_pos
                 low_limit = self.driver_pos - 6  # low_limit is how low in the placings to get driver positions
@@ -631,7 +632,7 @@ class Worker(QThread):
                 pos = count
                 idx = self.get_driver_idx_by_pos(pos, self.car_positions)
                 name = self.driver_lib[idx]
-                rawlap = self.ir['SessionInfo']['Sessions'][2]['ResultsPositions'][pos - 1]['LastTime']
+                rawlap = self.ir['SessionInfo']['Sessions'][1]['ResultsPositions'][pos - 1]['LastTime']
                 if rawlap > 0:  # some backmarkers might not have a lap time because they in garage
                     laptime = self.convert_laptime(rawlap)
                 else:
@@ -642,7 +643,7 @@ class Worker(QThread):
                 else:
                     player = False
                 car_type = self.ir['DriverInfo']['Drivers'][idx]['CarScreenNameShort']
-                cur_lap = self.ir['SessionInfo']['Sessions'][2]['ResultsPositions'][pos - 1]['LapsComplete']
+                cur_lap = self.ir['SessionInfo']['Sessions'][1]['ResultsPositions'][pos - 1]['LapsComplete']
                 classID = self.ir['DriverInfo']['Drivers'][idx]['CarClassID']
                 car = Racer(pos, name, laptime, rawlap, player, cur_lap, car_type, classID)
                 self.racer_info.append(car)
