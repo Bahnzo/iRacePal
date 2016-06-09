@@ -251,10 +251,10 @@ class Worker(QThread):
 
     def get_settings_value(self):
         if not self.settings.value('update_ms'):
-            self.update_value = 250
+            self.update_value = 250 / 1000
             self.settings.setValue('update_ms', 250)
         else:
-            self.update_value = self.settings.value('update_ms')
+            self.update_value = int(self.settings.value('update_ms')) / 1000
 
     def find_sim(self):
         while True:
@@ -272,11 +272,15 @@ class Worker(QThread):
                 sleep(1)
 
     def determine_session(self):
-        if self.ir['SessionState'] == 4 and self.ir['SessionNum'] == 1:  # 4 = racing 2 = race session
-            self.green_flag_race()
-        elif self.ir['SessionState'] == 3:  # parade laps
+        self.session_num = self.ir['SessionNum']
+        self.session_type = self.ir['SessionInfo']['Sessions'][self.session_num]['SessionType']
+        #if self.ir['SessionState'] == 4: # and self.ir['SessionNum'] == 1:  # 4 = racing 2 = race session
+        if self.ir['SessionState'] == 3:  # parade laps
             self.status.emit('Warmup Laps')
-            sleep(0.0016)
+            sleep(0.050)
+        elif self.ir['SessionState'] == 4 and self.session_type == "Race":
+        #elif self.session_type == 'Race':
+            self.green_flag_race()
         else:
             self.status.emit('Waiting for Race Session')
             sleep(1)
@@ -314,7 +318,7 @@ class Worker(QThread):
                     if self.determine_flag() == 'checkered':
                         self.race_over.emit()
                     self.loop()  # <<<<-------------------try this to keep getting info in pit?
-                    sleep(float(self.update_value))
+                    sleep(self.update_value)
                 elif self.ir['SessionState'] == 6:  # look for cool down
                     self.race_over.emit()
                     break
@@ -328,8 +332,6 @@ class Worker(QThread):
                         sleep(self.update_value)
             except Exception as e:
                     logging.exception(e)
-
-
 
     def loop(self):  # main loop executed during race
         try:
@@ -609,7 +611,7 @@ class Worker(QThread):
 
     def get_driver_positions(self):  # this is main function for getting drivers needed for positions
         try:
-            total_drivers = len(self.ir['SessionInfo']['Sessions'][1]['ResultsPositions'])
+            total_drivers = len(self.ir['SessionInfo']['Sessions'][self.session_num]['ResultsPositions'])
             if self.driver_pos == total_drivers:  # player is in last place
                 count = self.driver_pos
                 low_limit = self.driver_pos - 6  # low_limit is how low in the placings to get driver positions
@@ -632,7 +634,7 @@ class Worker(QThread):
                 pos = count
                 idx = self.get_driver_idx_by_pos(pos, self.car_positions)
                 name = self.driver_lib[idx]
-                rawlap = self.ir['SessionInfo']['Sessions'][1]['ResultsPositions'][pos - 1]['LastTime']
+                rawlap = self.ir['SessionInfo']['Sessions'][self.session_num]['ResultsPositions'][pos - 1]['LastTime']
                 if rawlap > 0:  # some backmarkers might not have a lap time because they in garage
                     laptime = self.convert_laptime(rawlap)
                 else:
@@ -643,7 +645,7 @@ class Worker(QThread):
                 else:
                     player = False
                 car_type = self.ir['DriverInfo']['Drivers'][idx]['CarScreenNameShort']
-                cur_lap = self.ir['SessionInfo']['Sessions'][1]['ResultsPositions'][pos - 1]['LapsComplete']
+                cur_lap = self.ir['SessionInfo']['Sessions'][self.session_num]['ResultsPositions'][pos - 1]['LapsComplete']
                 classID = self.ir['DriverInfo']['Drivers'][idx]['CarClassID']
                 car = Racer(pos, name, laptime, rawlap, player, cur_lap, car_type, classID)
                 self.racer_info.append(car)

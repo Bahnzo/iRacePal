@@ -17,7 +17,7 @@ class FirstWindow(QMainWindow, firstWindow.Ui_WindowOne):
 
         self.settings = QSettings('settings.ini', QSettings.IniFormat)  # create .ini file to save settings
         self.settings.setFallbacksEnabled(False)  # never use registry, only .ini file
-        self.version_label.setText('v0.6.1')
+        self.version_label.setText('v0.6.2')
         self.get_settings_value()
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
