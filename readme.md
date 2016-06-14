@@ -1,4 +1,4 @@
-iRacePal v0.6.1
+iRacePal v0.6.3
 ============================================
 
 This tool consists of three different windows.
@@ -104,3 +104,5 @@ v0.6 - Added water temps to Practice and Race screens. Added Air temperature to 
 set how often the program updates during the race, found in settings. Defaults to 250ms (4 times a second). 
 
 v0.6.1 - Fixed issue with program hanging when switching to Race....duh
+
+v0.6.3 - Fixed error with getting lap info while in pit.

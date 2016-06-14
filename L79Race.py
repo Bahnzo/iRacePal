@@ -612,44 +612,45 @@ class Worker(QThread):
     def get_driver_positions(self):  # this is main function for getting drivers needed for positions
         try:
             total_drivers = len(self.ir['SessionInfo']['Sessions'][self.session_num]['ResultsPositions'])
-            if self.driver_pos == total_drivers:  # player is in last place
-                count = self.driver_pos
-                low_limit = self.driver_pos - 6  # low_limit is how low in the placings to get driver positions
-                if low_limit <= 0:
+            if self.driver_pos is not -1:
+                if self.driver_pos == total_drivers:  # player is in last place
+                    count = self.driver_pos
+                    low_limit = self.driver_pos - 6  # low_limit is how low in the placings to get driver positions
+                    if low_limit <= 0:
+                        low_limit = 1
+                elif self.driver_pos == total_drivers - 1:  # second to last place
+                    count = self.driver_pos + 1
+                    low_limit = self.driver_pos - 5
+                elif self.driver_pos == total_drivers - 2: #  third from last
+                    count = self.driver_pos + 2
+                    low_limit = self.driver_pos - 4
+                elif self.driver_pos <= 3:  # driver is in top 3
+                    count = 7
                     low_limit = 1
-            elif self.driver_pos == total_drivers - 1:  # second to last place
-                count = self.driver_pos + 1
-                low_limit = self.driver_pos - 5
-            elif self.driver_pos == total_drivers - 2: #  third from last
-                count = self.driver_pos + 2
-                low_limit = self.driver_pos - 4
-            elif self.driver_pos <= 3:  # driver is in top 3
-                count = 7
-                low_limit = 1
-            else:
-                count = self.driver_pos + 3
-                low_limit = self.driver_pos - 3
-            self.racer_info.clear()  #  empty list in prep for new drivers
-            while count >= low_limit:
-                pos = count
-                idx = self.get_driver_idx_by_pos(pos, self.car_positions)
-                name = self.driver_lib[idx]
-                rawlap = self.ir['SessionInfo']['Sessions'][self.session_num]['ResultsPositions'][pos - 1]['LastTime']
-                if rawlap > 0:  # some backmarkers might not have a lap time because they in garage
-                    laptime = self.convert_laptime(rawlap)
                 else:
-                    rawlap = 0.00
-                    laptime = 0.00
-                if idx == self.DriverCarIdx:
-                    player = True
-                else:
-                    player = False
-                car_type = self.ir['DriverInfo']['Drivers'][idx]['CarScreenNameShort']
-                cur_lap = self.ir['SessionInfo']['Sessions'][self.session_num]['ResultsPositions'][pos - 1]['LapsComplete']
-                classID = self.ir['DriverInfo']['Drivers'][idx]['CarClassID']
-                car = Racer(pos, name, laptime, rawlap, player, cur_lap, car_type, classID)
-                self.racer_info.append(car)
-                count -= 1
+                    count = self.driver_pos + 3
+                    low_limit = self.driver_pos - 3
+                self.racer_info.clear()  #  empty list in prep for new drivers
+                while count >= low_limit:
+                    pos = count
+                    idx = self.get_driver_idx_by_pos(pos, self.car_positions)
+                    name = self.driver_lib[idx]
+                    rawlap = self.ir['SessionInfo']['Sessions'][self.session_num]['ResultsPositions'][pos - 1]['LastTime']
+                    if rawlap > 0:  # some backmarkers might not have a lap time because they in garage
+                        laptime = self.convert_laptime(rawlap)
+                    else:
+                        rawlap = 0.00
+                        laptime = 0.00
+                    if idx == self.DriverCarIdx:
+                        player = True
+                    else:
+                        player = False
+                    car_type = self.ir['DriverInfo']['Drivers'][idx]['CarScreenNameShort']
+                    cur_lap = self.ir['SessionInfo']['Sessions'][self.session_num]['ResultsPositions'][pos - 1]['LapsComplete']
+                    classID = self.ir['DriverInfo']['Drivers'][idx]['CarClassID']
+                    car = Racer(pos, name, laptime, rawlap, player, cur_lap, car_type, classID)
+                    self.racer_info.append(car)
+                    count -= 1
         except TypeError:
             pass
 
