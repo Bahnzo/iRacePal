@@ -366,7 +366,7 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
         else:
             self.move(self.settings.value('fuel_pos'))
         #self.ok_button.hide()
-        self.version_label.setText('v0.6')
+        self.version_label.setText('v0.6.4')
         self.lcd_palette = self.laps_completed_lcd.palette()
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)

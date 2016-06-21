@@ -53,7 +53,7 @@ class RaceWindow(QMainWindow, window_size):
         self.get_settings_values()
         self.ok_button.hide()
         #self.frame.setStyleSheet('background-color:grey')
-        self.version_label.setText('v0.5')
+        self.version_label.setText('v0.6.4')
         self.thread = Worker()
         self.thread.name_p4[list].connect(self.display_drivers)
         self.thread.status[str].connect(self.show_status)
