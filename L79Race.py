@@ -66,7 +66,8 @@ class RaceWindow(QMainWindow, window_size):
         self.thread.stint[int].connect(self.show_stint)
         self.thread.fuel_2_add[float].connect(self.show_fuel_2_add)
         self.thread.cur_fuel[float].connect(self.show_current_fuel)
-        self.thread.water_temp[int].connect(self.show_water_temp)
+        self.thread.water_temp[list].connect(self.show_water_temp)
+        self.thread.oil_temp[int].connect(self.show_oil_temp)
         self.thread.start()
         self.ok_button.clicked.connect(self.race_done)
 
@@ -80,8 +81,12 @@ class RaceWindow(QMainWindow, window_size):
         else:
             self.move(self.settings.value('race_pos'))
 
+    def show_oil_temp(self, i):
+        self.oil_temp_lcd.display(i)
+
     def show_water_temp(self, i):
-        self.water_temp_lcd.display(i)
+        self.water_temp_lcd.display(i[0])
+        self.water_temp_lcd.setStyleSheet('background-color: {}'.format(i[1]))
 
     def show_current_fuel(self, i):
         self.current_fuel_lcd.display(i)
@@ -227,7 +232,8 @@ class Worker(QThread):
     stint = pyqtSignal(int)
     fuel_2_add = pyqtSignal(float)
     cur_fuel = pyqtSignal(float)
-    water_temp = pyqtSignal(int)
+    water_temp = pyqtSignal(list)
+    oil_temp = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
@@ -381,11 +387,29 @@ class Worker(QThread):
             self.fuel_store = self.ir['FuelLevel']
 
     def get_water_temp(self):
+        y = []
         if not self.metric:
             w_temp = round((self.ir['WaterTemp'] * 9 /5) + 32)
+            if w_temp <= 254:
+                color = 'white'
+            elif w_temp > 254 and w_temp <= 265:
+                color = 'yellow'
+            else:
+                color = 'red'
+            o_temp = round((self.ir['OilTemp'] * 9 /5) + 32)
         else:
             w_temp = round(self.ir['WaterTemp'])
-        self.water_temp.emit(w_temp)
+            if w_temp <= 123:
+                color = 'white'
+            elif w_temp > 123 and w_temp < 129:
+                color = 'yellow'
+            else:
+                color = 'red'
+            o_temp = round(self.ir['OilTemp'])
+        y.append(w_temp)
+        y.append(color)
+        self.water_temp.emit(y)
+        self.oil_temp.emit(o_temp)
 
     def determine_pit_stop(self):
         pass

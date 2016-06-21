@@ -1,4 +1,4 @@
-iRacePal v0.6.3
+iRacePal v0.6.4
 ============================================
 
 This tool consists of three different windows.
@@ -106,3 +106,7 @@ set how often the program updates during the race, found in settings. Defaults t
 v0.6.1 - Fixed issue with program hanging when switching to Race....duh
 
 v0.6.3 - Fixed error with getting lap info while in pit.
+
+v0.6.4 - Added oil temps to race and practice screens. If water temps get over 254F (or equivalent in C) background
+turns yellow to warn driver of impending overheating. Turns red at 266F (Same temp that gauge will flash in car). Only 
+tested with the Xfinity car, so I have no idea if/how much difference there is in other cars. Will test later.

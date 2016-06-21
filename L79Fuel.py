@@ -46,7 +46,8 @@ class Worker(QThread):
     race = pyqtSignal()
     stint = pyqtSignal(int)
     weather = pyqtSignal(object)
-    water_temp = pyqtSignal(int)
+    water_temp = pyqtSignal(list)
+    oil_temp = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
@@ -72,8 +73,6 @@ class Worker(QThread):
             new_folder = '{}/{}/{}'.format(data, car_folder, track_folder)
             if not os.path.exists(new_folder):
                 os.makedirs(new_folder)
-
-
 
     def look_for_sim(self):
         count = 0
@@ -115,7 +114,7 @@ class Worker(QThread):
                 self.car_type = self.ir['DriverInfo']['Drivers'][driver]['CarPath']
                 avg = self.avg_fuel_calculation()
                 self.set_session_time_left()
-                self.get_water_temp()
+                self.get_oil_water_temp()
                 while True:
                     x = self.ir['CarIdxTrackSurface'][driver]
                     if x == 1:  # if car is in pits, then reset also
@@ -165,7 +164,7 @@ class Worker(QThread):
                             fuel_store = self.ir['FuelLevel']
                         if self.ir['WeatherType']:
                             self.get_weather()
-                        self.get_water_temp()
+                        self.get_oil_water_temp()
                         #self.show_total_laps()  # changes between total laps, and laps completed since leaving pits
                         self.show_stint_laps()
                         self.display_fuel_in_car()
@@ -194,12 +193,30 @@ class Worker(QThread):
         current_flag = self.ir['SessionFlags']
         print(current_flag)
 
-    def get_water_temp(self):
+    def get_oil_water_temp(self):
+        y = []
         if not self.metric:
             w_temp = round((self.ir['WaterTemp'] * 9 /5) + 32)
+            if w_temp <= 254:
+                color = 'white'
+            elif w_temp > 254 and w_temp <= 265:
+                color = 'yellow'
+            else:
+                color = 'red'
+            o_temp = round((self.ir['OilTemp'] * 9 /5) + 32)
         else:
             w_temp = round(self.ir['WaterTemp'])
-        self.water_temp.emit(w_temp)
+            if w_temp <= 123:
+                color = 'white'
+            elif w_temp > 123 and w_temp < 129:
+                color = 'yellow'
+            else:
+                color = 'red'
+            o_temp = round(self.ir['OilTemp'])
+        y.append(w_temp)
+        y.append(color)
+        self.water_temp.emit(y)
+        self.oil_temp.emit(o_temp)
 
     def show_total_laps(self):
         self.laps.emit(str(self.current_lap))
@@ -368,7 +385,8 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
         self.thread.session_left[str].connect(self.set_session_time)
         self.thread.stint[int].connect(self.show_stint)
         self.thread.weather[object].connect(self.show_weather)
-        self.thread.water_temp[int].connect(self.show_water_temp)
+        self.thread.water_temp[list].connect(self.show_water_temp)
+        self.thread.oil_temp[int].connect(self.show_oil_temp)
         self.thread.start()
         #self.quit_button.clicked.connect(self.quit_button_pushed)
         self.race_laps.valueChanged.connect(self.set_fuel_needed2)
@@ -379,7 +397,11 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
         e.accept()
 
     def show_water_temp(self, i):
-        self.water_temp_lcd.display(i)
+        self.water_temp_lcd.display(i[0])
+        self.water_temp_lcd.setStyleSheet('background-color: {}'.format(i[1]))
+
+    def show_oil_temp(self, i):
+        self.oil_temp_lcd.display(i)
 
     def show_weather(self, i):
         self.air_temp_label.setText(i.air_temp)

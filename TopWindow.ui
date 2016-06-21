@@ -603,6 +603,45 @@
      <string>Water Temp</string>
     </property>
    </widget>
+   <widget class="QLCDNumber" name="oil_temp_lcd">
+    <property name="geometry">
+     <rect>
+      <x>216</x>
+      <y>222</y>
+      <width>85</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>36</pointsize>
+     </font>
+    </property>
+    <property name="digitCount">
+     <number>3</number>
+    </property>
+    <property name="intValue" stdset="0">
+     <number>0</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="laps_label_4">
+    <property name="geometry">
+     <rect>
+      <x>216</x>
+      <y>198</y>
+      <width>97</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Oil Temp</string>
+    </property>
+   </widget>
   </widget>
   <action name="actionSettings">
    <property name="text">
