@@ -17,7 +17,7 @@ class FirstWindow(QMainWindow, firstWindow.Ui_WindowOne):
 
         self.settings = QSettings('settings.ini', QSettings.IniFormat)  # create .ini file to save settings
         self.settings.setFallbacksEnabled(False)  # never use registry, only .ini file
-        self.version_label.setText('v0.6.4')
+        self.version_label.setText('v0.6.5')
         self.get_settings_value()
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
@@ -100,15 +100,40 @@ class Worker(QThread):
                 sleep(0.050)
 
     def determine_session(self):
-        if self.ir['WeekendInfo']['EventType'] == 'Race':
-            self.ir.shutdown()
-            self.race.emit()
-        elif self.ir['WeekendInfo']['EventType'] == 'Test':
-            self.ir.shutdown()
-            self.practice.emit()
-        elif self.ir['WeekendInfo']['EventType'] == 'Practice':
-            self.ir.shutdown()
-            self.practice.emit()
+        session_num = self.ir['SessionNum']
+        session_type = self.ir['SessionInfo']['Sessions'][session_num]['SessionType']
+        try:
+            if session_type == 'Race':
+                self.ir.shutdown()
+                self.race.emit()
+            elif session_type == 'Test':
+                self.ir.shutdown()
+                self.practice.emit()
+            elif session_type == 'Practice':
+                self.ir.shutdown()
+                self.practice.emit()
+            elif session_type == 'Open Qualify':
+                self.ir.shutdown()
+                self.race.emit()
+            else:
+                self.ir.shutdown()
+                self.practice.emit()
+            '''
+            if self.ir['WeekendInfo']['EventType'] == 'Race':
+                    self.ir.shutdown()
+                    self.practice.emit()
+                else:
+                    self.ir.shutdown()
+                    self.race.emit()
+            elif self.ir['WeekendInfo']['EventType'] == 'Test':
+                self.ir.shutdown()
+                self.practice.emit()
+            elif self.ir['WeekendInfo']['EventType'] == 'Practice':
+                self.ir.shutdown()
+                self.practice.emit()
+            '''
+        except Exception as e:
+            logging.error(e)
 
 def main():
     app = QApplication(sys.argv)

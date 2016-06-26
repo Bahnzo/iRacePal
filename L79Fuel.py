@@ -95,6 +95,8 @@ class Worker(QThread):
     def look_for_car(self):
         global fuel_used
         while True:
+            session_num = self.ir['SessionNum']
+            session_type = self.ir['SessionInfo']['Sessions'][session_num]['SessionType']
             self.set_time()
             self.current_stint = 0
             driver = self.ir['DriverInfo']['DriverCarIdx']
@@ -170,7 +172,7 @@ class Worker(QThread):
                         self.display_fuel_in_car()
                         self.display_laps_remaining(avg)
                         sleep(0.0016)  # 16ms
-                        if self.ir['WeekendInfo']['EventType'] == 'Race':
+                        if session_type == 'Race':
                             self.race.emit()
                             sleep(0.0016)
                             break
@@ -179,7 +181,7 @@ class Worker(QThread):
             else:
                 if self.ir.startup() == 0:
                     break
-                if self.ir['WeekendInfo']['EventType'] == 'Race':
+                if session_type == 'Race':
                     self.race.emit()
                     sleep(0.0016)
                     break
@@ -366,7 +368,7 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
         else:
             self.move(self.settings.value('fuel_pos'))
         #self.ok_button.hide()
-        self.version_label.setText('v0.6.4')
+        self.version_label.setText('v0.6.5')
         self.lcd_palette = self.laps_completed_lcd.palette()
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
