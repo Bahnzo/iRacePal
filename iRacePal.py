@@ -17,7 +17,7 @@ class FirstWindow(QMainWindow, firstWindow.Ui_WindowOne):
 
         self.settings = QSettings('settings.ini', QSettings.IniFormat)  # create .ini file to save settings
         self.settings.setFallbacksEnabled(False)  # never use registry, only .ini file
-        self.version_label.setText('v0.6.5')
+        self.version_label.setText('v0.6.6')
         self.get_settings_value()
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
@@ -112,7 +112,7 @@ class Worker(QThread):
             elif session_type == 'Practice':
                 self.ir.shutdown()
                 self.practice.emit()
-            elif session_type == 'Open Qualify':
+            elif session_type == 'Open Qualify' or session_type == 'Qualify' or session_type == 'Lone Qualify':
                 self.ir.shutdown()
                 self.race.emit()
             else:

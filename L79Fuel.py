@@ -172,7 +172,7 @@ class Worker(QThread):
                         self.display_fuel_in_car()
                         self.display_laps_remaining(avg)
                         sleep(0.0016)  # 16ms
-                        if session_type == 'Race':
+                        if session_type == 'Race' or session_type == 'Qualifying' or session_type == 'Open Qualify' or session_type == 'Lone Qualify':
                             self.race.emit()
                             sleep(0.0016)
                             break
@@ -181,7 +181,7 @@ class Worker(QThread):
             else:
                 if self.ir.startup() == 0:
                     break
-                if session_type == 'Race':
+                if session_type == 'Race' or session_type == 'Qualifying' or session_type == 'Open Qualify' or session_type == 'Lone Qualify':
                     self.race.emit()
                     sleep(0.0016)
                     break
@@ -368,7 +368,7 @@ class FuelWindow(QMainWindow, TopWindow.Ui_TopWindow):
         else:
             self.move(self.settings.value('fuel_pos'))
         #self.ok_button.hide()
-        self.version_label.setText('v0.6.5')
+        self.version_label.setText('v0.6.6')
         self.lcd_palette = self.laps_completed_lcd.palette()
         self.thread = Worker()
         self.thread.status[str].connect(self.set_status)
