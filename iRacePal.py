@@ -118,20 +118,6 @@ class Worker(QThread):
             else:
                 self.ir.shutdown()
                 self.practice.emit()
-            '''
-            if self.ir['WeekendInfo']['EventType'] == 'Race':
-                    self.ir.shutdown()
-                    self.practice.emit()
-                else:
-                    self.ir.shutdown()
-                    self.race.emit()
-            elif self.ir['WeekendInfo']['EventType'] == 'Test':
-                self.ir.shutdown()
-                self.practice.emit()
-            elif self.ir['WeekendInfo']['EventType'] == 'Practice':
-                self.ir.shutdown()
-                self.practice.emit()
-            '''
         except Exception as e:
             logging.error(e)
 
